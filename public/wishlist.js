@@ -1,5 +1,5 @@
 (function () {
-  window.API_URL = window.API_URL || "https://animal-anderson-lectures-assessment.trycloudflare.com";
+  window.API_URL = window.API_URL || "https://my-shopify-backend.onrender.com";
   const API_URL = window.API_URL;
 
   function injectWishlistStyles() {

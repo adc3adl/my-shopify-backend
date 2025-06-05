@@ -1,5 +1,5 @@
 (function () {
-  const API_URL = "https://animal-anderson-lectures-assessment.trycloudflare.com";
+  const API_URL = "https://my-shopify-backend.onrender.com";
 
   if (!document.getElementById("wishlist-modal-styles")) {
     const style = document.createElement('style');

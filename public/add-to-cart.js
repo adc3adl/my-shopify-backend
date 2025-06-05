@@ -42,7 +42,7 @@
 
       const productUrl = window.location.href;
 
-      const API_URL = "https://animal-anderson-lectures-assessment.trycloudflare.com"; 
+      const API_URL = "https://my-shopify-backend.onrender.com"; 
       
       fetch(`${API_URL}/api/add-to-cart`, {
         method: "POST",
