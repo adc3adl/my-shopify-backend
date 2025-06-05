@@ -158,6 +158,54 @@ app.post('/api/wishlist', async (req, res) => {
 
     const metafield = metafieldsData.metafields.find(f => f.namespace === "custom_data" && f.key === "wishlist");
     if (metafield?.value) wishlist = JSON.parse(metafield.value).filter(Boolean);
+if (action === "update") {
+  const { quantity } = req.body;
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    return res.status(400).json({ error: "Invalid quantity" });
+  }
+  const shop = process.env.SHOPIFY_SHOP;
+  const token = process.env.SHOPIFY_ADMIN_TOKEN;
+  let wishlist = [];
+
+  const { data: metafieldsData } = await axios.get(`https://${shop}/admin/api/2024-01/customers/${customerId}/metafields.json`, {
+    headers: { "X-Shopify-Access-Token": token }
+  });
+
+  const metafield = metafieldsData.metafields.find(f => f.namespace === "custom_data" && f.key === "wishlist");
+  if (metafield?.value) wishlist = JSON.parse(metafield.value);
+
+  // Обновляем количество для данного товара
+  wishlist = wishlist.map(p =>
+    typeof p === "object" && p.id === variantId ? { ...p, quantity } : (p === variantId ? { id: variantId, quantity } : p)
+  );
+
+  // Сохраняем снова
+  const payload = {
+    metafield: {
+      namespace: "custom_data",
+      key: "wishlist",
+      type: "json",
+      value: JSON.stringify(wishlist),
+      owner_id: customerId,
+      owner_resource: "customer"
+    }
+  };
+
+  if (metafield?.id) {
+    await axios.delete(`https://${shop}/admin/api/2024-01/metafields/${metafield.id}.json`, {
+      headers: { "X-Shopify-Access-Token": token }
+    });
+  }
+
+  await axios.post(`https://${shop}/admin/api/2024-01/metafields.json`, payload, {
+    headers: {
+      "X-Shopify-Access-Token": token,
+      "Content-Type": "application/json"
+    }
+  });
+
+  return res.json({ status: "ok", wishlist });
+}
 
     if (action === "add") {
       if (!wishlist.includes(variantId)) wishlist.push(variantId);

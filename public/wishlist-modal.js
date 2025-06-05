@@ -2,7 +2,7 @@
   const API_URL = "https://my-shopify-backend.onrender.com";
 
   if (!document.getElementById("wishlist-modal-styles")) {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.id = "wishlist-modal-styles";
     style.innerHTML = `
       .qty-control {
@@ -65,14 +65,14 @@
     }, 10);
   }
 
-function closeModal(modal) {
-  modal.classList.remove("fade-in");
-  modal.classList.add("fade-out");
-  setTimeout(() => {
-    modal.classList.add("hidden");
-    modal.classList.remove("fade-out");
-  }, 300);
-}
+  function closeModal(modal) {
+    modal.classList.remove("fade-in");
+    modal.classList.add("fade-out");
+    setTimeout(() => {
+      modal.classList.add("hidden");
+      modal.classList.remove("fade-out");
+    }, 300);
+  }
 
   function main() {
     const toggleBtn = document.getElementById("wishlist-toggle");
@@ -82,7 +82,7 @@ function closeModal(modal) {
 
     async function fetchWishlist() {
       if (!window.customerId) {
-        productContainer.innerHTML = 'Please <a href="/account/login">log in</a> to use your wishlist ❤️';п
+        productContainer.innerHTML = 'Please <a href="/account/login">log in</a> to use your wishlist ❤️';
         return;
       }
       try {
@@ -194,7 +194,6 @@ function closeModal(modal) {
             if (result?.status === "ok") {
               item.remove();
 
-            // ⬇ Обновление иконки сердечка на карточке товара
               const heartBtn = document.querySelector(`.wishlist-button[data-product-id="${variantId}"]`);
               if (heartBtn) {
                 heartBtn.classList.remove("added");
@@ -226,9 +225,9 @@ function closeModal(modal) {
             e.target.disabled = true;
             e.target.textContent = "Adding...";
 
-            await fetch('/cart/add.js', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+            await fetch("/cart/add.js", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ id: variantId, quantity })
             }).then(async (r) => {
               if (r.ok) {
@@ -256,11 +255,11 @@ function closeModal(modal) {
               e.target.disabled = false;
             }, 1500);
 
-            if (document.querySelector('#cart-count')) {
-              fetch('/cart.js')
+            if (document.querySelector("#cart-count")) {
+              fetch("/cart.js")
                 .then(r => r.json())
                 .then(cart => {
-                  document.querySelector('#cart-count').textContent = cart.item_count;
+                  document.querySelector("#cart-count").textContent = cart.item_count;
                 });
             }
           } catch (err) {
@@ -268,6 +267,34 @@ function closeModal(modal) {
             e.target.textContent = "Add to cart";
             e.target.disabled = false;
             console.error("❌ Error adding to cart:", err);
+          }
+        }
+      });
+
+      // ❗ Вынесенный change-обработчик
+      productContainer.addEventListener("change", async (e) => {
+        if (e.target.classList.contains("wishlist-qty")) {
+          const item = e.target.closest(".wishlist-item");
+          const variantId = item?.getAttribute("data-variant-id");
+          const quantity = Number(e.target.value) || 1;
+          if (!variantId || !window.customerId) return;
+
+          try {
+            await fetch(`${API_URL}/api/wishlist`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "ngrok-skip-browser-warning": "true"
+              },
+              body: JSON.stringify({
+                customerId: window.customerId,
+                productId: variantId,
+                quantity,
+                action: "update"
+              })
+            });
+          } catch (err) {
+            console.error("❌ Error updating quantity:", err);
           }
         }
       });
