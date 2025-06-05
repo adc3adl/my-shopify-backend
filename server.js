@@ -241,7 +241,7 @@ app.get("/api/wishlist-get", async (req, res) => {
     const products = productData.products.map(p => {
       const v = variantMap.get(p.id);
       return {
-        id: v.id,
+        id: v?.id || p.variants[0]?.id,
         title: p.title,
         url: `/products/${p.handle}`,
         price: p.variants[0]?.price || '—',
