@@ -166,6 +166,7 @@
           if (isMinus && current > 1) current--;
           if (!isMinus) current++;
           qtyInput.value = current;
+          qtyInput.dispatchEvent(new Event("change", { bubbles: true }));
           e.preventDefault();
           e.stopPropagation();
           return;
@@ -193,7 +194,6 @@
             const result = await res.json();
             if (result?.status === "ok") {
               item.remove();
-
               const heartBtn = document.querySelector(`.wishlist-button[data-product-id="${variantId}"]`);
               if (heartBtn) {
                 heartBtn.classList.remove("added");
@@ -224,29 +224,10 @@
           try {
             e.target.disabled = true;
             e.target.textContent = "Adding...";
-
             await fetch("/cart/add.js", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ id: variantId, quantity })
-            }).then(async (r) => {
-              if (r.ok) {
-                const productTitle = decodeURIComponent(item.getAttribute("data-title") || "");
-                const productUrl = decodeURIComponent(item.getAttribute("data-url") || "");
-                await fetch(`${API_URL}/api/add-to-cart`, {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    "ngrok-skip-browser-warning": "true"
-                  },
-                  body: JSON.stringify({
-                    productId: variantId,
-                    title: productTitle,
-                    url: productUrl,
-                    customerId: window.customerId || ""
-                  })
-                });
-              }
             });
 
             e.target.textContent = "Added!";
@@ -271,7 +252,6 @@
         }
       });
 
-      // ❗ Вынесенный change-обработчик
       productContainer.addEventListener("change", async (e) => {
         if (e.target.classList.contains("wishlist-qty")) {
           const item = e.target.closest(".wishlist-item");

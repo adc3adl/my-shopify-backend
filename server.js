@@ -133,19 +133,11 @@ app.post('/api/add-to-cart', (req, res) => {
 });
 
 // === Wishlist API ===
-let isWishlistUpdateInProgress = false;
-
 app.post('/api/wishlist', async (req, res) => {
-  const { customerId, productId: variantId, action } = req.body;
-  if (!customerId || !variantId || !['add', 'remove'].includes(action)) {
+  const { customerId, productId: variantId, action, quantity } = req.body;
+  if (!customerId || !variantId || !['add', 'remove', 'update'].includes(action)) {
     return res.status(400).json({ error: "Invalid input" });
   }
-
-  if (isWishlistUpdateInProgress) {
-    return res.status(429).json({ error: "Update in progress, try again" });
-  }
-
-  isWishlistUpdateInProgress = true;
 
   try {
     const shop = process.env.SHOPIFY_SHOP;
@@ -158,59 +150,21 @@ app.post('/api/wishlist', async (req, res) => {
 
     const metafield = metafieldsData.metafields.find(f => f.namespace === "custom_data" && f.key === "wishlist");
     if (metafield?.value) wishlist = JSON.parse(metafield.value).filter(Boolean);
-if (action === "update") {
-  const { quantity } = req.body;
-  if (!Number.isInteger(quantity) || quantity < 1) {
-    return res.status(400).json({ error: "Invalid quantity" });
-  }
-  const shop = process.env.SHOPIFY_SHOP;
-  const token = process.env.SHOPIFY_ADMIN_TOKEN;
-  let wishlist = [];
 
-  const { data: metafieldsData } = await axios.get(`https://${shop}/admin/api/2024-01/customers/${customerId}/metafields.json`, {
-    headers: { "X-Shopify-Access-Token": token }
-  });
+    if (action === "update") {
+      if (!Number.isInteger(quantity) || quantity < 1) {
+        return res.status(400).json({ error: "Invalid quantity" });
+      }
 
-  const metafield = metafieldsData.metafields.find(f => f.namespace === "custom_data" && f.key === "wishlist");
-  if (metafield?.value) wishlist = JSON.parse(metafield.value);
-
-  // Обновляем количество для данного товара
-  wishlist = wishlist.map(p =>
-    typeof p === "object" && p.id === variantId ? { ...p, quantity } : (p === variantId ? { id: variantId, quantity } : p)
-  );
-
-  // Сохраняем снова
-  const payload = {
-    metafield: {
-      namespace: "custom_data",
-      key: "wishlist",
-      type: "json",
-      value: JSON.stringify(wishlist),
-      owner_id: customerId,
-      owner_resource: "customer"
-    }
-  };
-
-  if (metafield?.id) {
-    await axios.delete(`https://${shop}/admin/api/2024-01/metafields/${metafield.id}.json`, {
-      headers: { "X-Shopify-Access-Token": token }
-    });
-  }
-
-  await axios.post(`https://${shop}/admin/api/2024-01/metafields.json`, payload, {
-    headers: {
-      "X-Shopify-Access-Token": token,
-      "Content-Type": "application/json"
-    }
-  });
-
-  return res.json({ status: "ok", wishlist });
-}
-
-    if (action === "add") {
-      if (!wishlist.includes(variantId)) wishlist.push(variantId);
-    } else {
-      wishlist = wishlist.filter(id => id !== variantId);
+      wishlist = wishlist.map(p =>
+        typeof p === "object" && p.id === variantId ? { ...p, quantity } : (p === variantId ? { id: variantId, quantity } : p)
+      );
+    } else if (action === "add") {
+      if (!wishlist.some(p => (typeof p === 'object' ? p.id : p) === variantId)) {
+        wishlist.push({ id: variantId, quantity: 1 });
+      }
+    } else if (action === "remove") {
+      wishlist = wishlist.filter(p => (typeof p === 'object' ? p.id : p) !== variantId);
     }
 
     if (metafield?.id) {
@@ -243,8 +197,6 @@ if (action === "update") {
   } catch (e) {
     console.error("❌ Wishlist update error:", e.response?.data || e.message);
     res.status(500).json({ error: "Failed to update metafield" });
-  } finally {
-    isWishlistUpdateInProgress = false;
   }
 });
 
@@ -261,20 +213,21 @@ app.get("/api/wishlist-get", async (req, res) => {
     const metafield = metafieldsData.metafields.find(f => f.namespace === "custom_data" && f.key === "wishlist");
     if (!metafield?.value) return res.json({ products: [] });
 
-    const variantIds = JSON.parse(metafield.value).filter(Boolean);
-    if (!Array.isArray(variantIds) || variantIds.length === 0) return res.json({ products: [] });
+    const variantEntries = JSON.parse(metafield.value).filter(Boolean);
+    if (!Array.isArray(variantEntries) || variantEntries.length === 0) return res.json({ products: [] });
 
     const variantMap = new Map();
     const uniqueProductIds = new Set();
 
-    for (const variantId of variantIds) {
+    for (const entry of variantEntries) {
+      const variantId = typeof entry === "object" ? entry.id : entry;
       try {
         const { data: variantData } = await axios.get(`https://${process.env.SHOPIFY_SHOP}/admin/api/2024-01/variants/${variantId}.json`, {
           headers: { "X-Shopify-Access-Token": process.env.SHOPIFY_ADMIN_TOKEN }
         });
         const productId = variantData.variant.product_id;
         uniqueProductIds.add(productId);
-        variantMap.set(productId, variantId);
+        variantMap.set(productId, { id: variantId, quantity: entry.quantity || 1 });
       } catch (err) {
         console.error("❌ Variant fetch error:", err.response?.data || err.message);
       }
@@ -285,15 +238,18 @@ app.get("/api/wishlist-get", async (req, res) => {
       params: { ids: Array.from(uniqueProductIds).join(",") }
     });
 
-    const products = productData.products.map(p => ({
-      id: variantMap.get(p.id),
-      title: p.title,
-      url: `/products/${p.handle}`,
-      price: p.variants[0]?.price || '—',
-      currency: 'UAH',
-      image: p.image?.src || p.images?.[0]?.src || "https://placehold.co/80x80?text=No+Image",
-      quantity: 1
-    }));
+    const products = productData.products.map(p => {
+      const v = variantMap.get(p.id);
+      return {
+        id: v.id,
+        title: p.title,
+        url: `/products/${p.handle}`,
+        price: p.variants[0]?.price || '—',
+        currency: 'UAH',
+        image: p.image?.src || p.images?.[0]?.src || "https://placehold.co/80x80?text=No+Image",
+        quantity: v.quantity || 1
+      };
+    });
 
     res.json({ products });
   } catch (e) {
@@ -301,6 +257,7 @@ app.get("/api/wishlist-get", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
 // === TEMPORARY DEBUG ROUTE — view database entries
 app.get('/debug/all-events', (req, res) => {
   try {
