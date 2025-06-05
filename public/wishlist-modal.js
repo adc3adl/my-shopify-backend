@@ -232,6 +232,8 @@
           const qtyInput = item.querySelector(".wishlist-qty");
           const quantity = Number(qtyInput.value) || 1;
           if (!variantId || !quantity) return;
+          const title = decodeURIComponent(item.getAttribute("data-title") || "");
+          const url = decodeURIComponent(item.getAttribute("data-url") || "");
           try {
             e.target.disabled = true;
             e.target.textContent = "Adding...";
@@ -253,7 +255,9 @@
                               customerId: window.customerId,
                               productId: variantId,
                               quantity: quantity,
-                              source: "wishlist-modal"
+                              source: "wishlist-modal",
+                              title, 
+                              url   
                             })
                           });
                         } catch (err) {
