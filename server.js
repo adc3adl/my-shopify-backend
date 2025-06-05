@@ -255,10 +255,13 @@ app.get("/api/wishlist-get", async (req, res) => {
 });
 // === TEMPORARY DEBUG ROUTE — view database entries
 app.get('/debug/all-events', (req, res) => {
-  db.all("SELECT * FROM add_to_cart_events ORDER BY created_at DESC", (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+  try {
+    const rows = db.prepare("SELECT * FROM add_to_cart_events ORDER BY created_at DESC").all();
     res.json(rows);
-  });
+  } catch (err) {
+    console.error("❌ Error in /debug/all-events:", err.message);
+    res.status(500).json({ error: "Failed to fetch events" });
+  }
 });
 
 app.listen(PORT, () => {
