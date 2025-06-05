@@ -302,21 +302,23 @@ document.querySelectorAll(".wishlist-button").forEach((btn) => {
 
   const result = await res.json();
 
+const buttons = document.querySelectorAll(`.wishlist-button[data-product-id="${productId}"]`);
+buttons.forEach((btn) => {
+  const svg = btn.querySelector("svg");
   if (result.status === "added") {
-    wishlistBtn.classList.add("added");
-    const svg = wishlistBtn.querySelector("svg");
+    btn.classList.add("added");
     if (svg) {
       svg.setAttribute("fill", "#e63946");
       svg.setAttribute("stroke", "#e63946");
     }
   } else if (result.status === "removed") {
-    wishlistBtn.classList.remove("added");
-    const svg = wishlistBtn.querySelector("svg");
+    btn.classList.remove("added");
     if (svg) {
       svg.setAttribute("fill", "none");
       svg.setAttribute("stroke", "#e63946");
     }
   }
+});
 
 } catch (err) {
   console.error("❌ Error toggling wishlist:", err);
