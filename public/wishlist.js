@@ -149,6 +149,11 @@
 .wishlist-modal-close:hover {
   color: #222;
 }
+  .wishlist-item.fading-out {
+  opacity: 0;
+  transform: translateX(40px);
+  transition: opacity 2s ease, transform 0.6s ease;
+}
 `;
     document.head.appendChild(style);
   }

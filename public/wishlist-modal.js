@@ -192,8 +192,18 @@
               })
             });
             const result = await res.json();
-            if (result?.status === "ok") {
+                    if (result?.status === "ok") {
+            console.log("⏳ Удаляем элемент с анимацией:", item);
+            item.classList.add("fading-out");
+            setTimeout(() => {
               item.remove();
+
+              const remainingItems = modal.querySelectorAll(".wishlist-item").length;
+              if (remainingItems === 0) {
+                productContainer.innerHTML = "Your wishlist is empty.";
+              }
+            }, 2000);
+
               const heartBtn = document.querySelector(`.wishlist-button[data-product-id="${variantId}"]`);
               if (heartBtn) {
                 heartBtn.classList.remove("added");
