@@ -193,6 +193,17 @@ function closeModal(modal) {
             const result = await res.json();
             if (result?.status === "ok") {
               item.remove();
+
+            // ⬇ Обновление иконки сердечка на карточке товара
+              const heartBtn = document.querySelector(`.wishlist-button[data-product-id="${variantId}"]`);
+              if (heartBtn) {
+                heartBtn.classList.remove("added");
+                const svg = heartBtn.querySelector("svg");
+                if (svg) {
+                  svg.setAttribute("fill", "none");
+                  svg.setAttribute("stroke", "#e63946");
+                }
+              }
               const remainingItems = modal.querySelectorAll(".wishlist-item").length;
               if (remainingItems === 0) {
                 productContainer.innerHTML = "Your wishlist is empty.";
