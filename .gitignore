@@ -1,1 +1,2 @@
+.envgit rm --cached .env
 .env
