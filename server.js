@@ -1,9 +1,9 @@
-// server.js — полный рабочий backend с OAuth и wishlist логикой
+// server.js — backend with better-sqlite3 instead of sqlite3
 
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
 const axios = require('axios');
 const querystring = require('querystring');
 const crypto = require('crypto');
@@ -42,27 +42,22 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(bodyParser.json());
 
 // === DB ===
-const db = new sqlite3.Database('./shopify.db', (err) => {
-  if (err) console.error('DB error:', err);
-  else console.log('Connected to SQLite DB');
-});
+const db = new Database('./shopify.db');
 
-db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS add_to_cart_events (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    product_id TEXT,
-    title TEXT,
-    url TEXT,
-    customer_id TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
+db.prepare(`CREATE TABLE IF NOT EXISTS add_to_cart_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  product_id TEXT,
+  title TEXT,
+  url TEXT,
+  customer_id TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)`).run();
 
-  db.run(`CREATE TABLE IF NOT EXISTS shop_tokens (
-    shop TEXT PRIMARY KEY,
-    token TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
-});
+db.prepare(`CREATE TABLE IF NOT EXISTS shop_tokens (
+  shop TEXT PRIMARY KEY,
+  token TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)`).run();
 
 // === OAuth routes ===
 app.get('/auth', (req, res) => {
@@ -95,30 +90,28 @@ app.get('/auth/callback', async (req, res) => {
 
     const accessToken = tokenRes.data.access_token;
 
-    db.run("INSERT OR REPLACE INTO shop_tokens (shop, token) VALUES (?, ?)", [shop, accessToken], async (err) => {
-      if (err) return res.status(500).send("DB error saving token");
+    db.prepare("INSERT OR REPLACE INTO shop_tokens (shop, token) VALUES (?, ?)").run(shop, accessToken);
 
-      const scriptFiles = ["wishlist-modal.js", "wishlist.js", "add-to-cart.js"];
-      let results = [];
-      for (const scriptName of scriptFiles) {
-        const scriptUrl = `${APP_URL}/${scriptName}`;
-        try {
-          await axios.post(`https://${shop}/admin/api/2024-01/script_tags.json`, {
-            script_tag: { event: "onload", src: scriptUrl, display_scope: "all" }
-          }, {
-            headers: {
-              "X-Shopify-Access-Token": accessToken,
-              "Content-Type": "application/json"
-            }
-          });
-          results.push(`<li style=\"color:green\">✅ ${scriptName} подключён</li>`);
-        } catch (e) {
-          results.push(`<li style=\"color:red\">❌ ${scriptName}: ${e.response?.data?.errors || e.message}</li>`);
-        }
+    const scriptFiles = ["wishlist-modal.js", "wishlist.js", "add-to-cart.js"];
+    let results = [];
+    for (const scriptName of scriptFiles) {
+      const scriptUrl = `${APP_URL}/${scriptName}`;
+      try {
+        await axios.post(`https://${shop}/admin/api/2024-01/script_tags.json`, {
+          script_tag: { event: "onload", src: scriptUrl, display_scope: "all" }
+        }, {
+          headers: {
+            "X-Shopify-Access-Token": accessToken,
+            "Content-Type": "application/json"
+          }
+        });
+        results.push(`<li style=\"color:green\">✅ ${scriptName} подключён</li>`);
+      } catch (e) {
+        results.push(`<li style=\"color:red\">❌ ${scriptName}: ${e.response?.data?.errors || e.message}</li>`);
       }
+    }
 
-      res.send(`<h3>✅ App installed!</h3><ul>${results.join('')}</ul><a href=\"/\">На главную</a>`);
-    });
+    res.send(`<h3>✅ App installed!</h3><ul>${results.join('')}</ul><a href=\"/\">На главную</a>`);
   } catch (err) {
     console.error("OAuth callback error:", err.response?.data || err.message);
     res.status(500).send("OAuth error");
@@ -130,14 +123,13 @@ app.post('/api/add-to-cart', (req, res) => {
   const { productId, title, url, customerId } = req.body;
   if (!productId) return res.status(400).json({ error: 'productId required' });
 
-  db.run(
-    `INSERT INTO add_to_cart_events (product_id, title, url, customer_id) VALUES (?, ?, ?, ?)`,
-    [productId, title || '', url || '', customerId || ''],
-    function (err) {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ status: 'ok', id: this.lastID });
-    }
-  );
+  try {
+    const stmt = db.prepare(`INSERT INTO add_to_cart_events (product_id, title, url, customer_id) VALUES (?, ?, ?, ?)`);
+    const info = stmt.run(productId, title || '', url || '', customerId || '');
+    res.json({ status: 'ok', id: info.lastInsertRowid });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // === Wishlist API ===
@@ -165,7 +157,6 @@ app.post('/api/wishlist', async (req, res) => {
     });
 
     const metafield = metafieldsData.metafields.find(f => f.namespace === "custom_data" && f.key === "wishlist");
-
     if (metafield?.value) wishlist = JSON.parse(metafield.value).filter(Boolean);
 
     if (action === "add") {
