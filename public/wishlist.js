@@ -356,9 +356,17 @@ document.addEventListener("click", async function (e) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ customerId, productId, action: "remove" })
           });
-          if (res.ok) {
-            fetchWishlist(customerId);
-          } else {
+         if (res.ok) {
+  // 🧠 Обновим локальный кэш — удалим ID
+  cachedWishlistIds = cachedWishlistIds.filter(id => String(id) !== productId);
+
+  // 🛡️ И добавим в защитный кэш от двойных кликов
+  window.__wishlistRemovedCache = window.__wishlistRemovedCache || new Set();
+  window.__wishlistRemovedCache.add(productId);
+  setTimeout(() => window.__wishlistRemovedCache.delete(productId), 3000);
+
+  fetchWishlist(customerId);
+} else {
             alert("Error removing from wishlist");
           }
         } catch (err) {
