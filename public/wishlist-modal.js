@@ -195,6 +195,10 @@
                     if (result?.status === "ok") {
             console.log("⏳ Удаляем элемент с анимацией:", item);
             item.classList.add("fading-out");
+            // 🧠 Обновим cachedWishlistIds глобально
+if (window.cachedWishlistIds) {
+  window.cachedWishlistIds = window.cachedWishlistIds.filter(id => String(id) !== variantId);
+}
             setTimeout(() => {
               item.remove();
 
