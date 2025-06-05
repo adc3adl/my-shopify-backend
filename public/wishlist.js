@@ -235,6 +235,29 @@ function showLoginModal(targetElement) {
 
       container.appendChild(item);
     });
+document.querySelectorAll(".wishlist-button").forEach((btn) => {
+  const productId = btn.getAttribute("data-product-id");
+  const found = products.find((p) => p.id === productId);
+  if (found) {
+    btn.classList.add("added");
+    const svg = btn.querySelector("svg");
+    if (svg) {
+      svg.setAttribute("fill", "#e63946");
+      svg.setAttribute("stroke", "#e63946");
+    }
+  } else {
+    btn.classList.remove("added");
+    const svg = btn.querySelector("svg");
+    if (svg) {
+      svg.setAttribute("fill", "none");
+      svg.setAttribute("stroke", "#e63946");
+    }
+  }
+});
+
+
+
+
   }
 
   function getCustomerId() {
@@ -270,7 +293,34 @@ function showLoginModal(targetElement) {
           showLoginModal(wishlistBtn);
           return;
         }
-        console.log("✅ Wishlist button clicked for product ID:", productId);
+        try {
+  const res = await fetch(`${API_URL}/api/wishlist`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ customerId, productId, action: "toggle" })
+  });
+
+  const result = await res.json();
+
+  if (result.status === "added") {
+    wishlistBtn.classList.add("added");
+    const svg = wishlistBtn.querySelector("svg");
+    if (svg) {
+      svg.setAttribute("fill", "#e63946");
+      svg.setAttribute("stroke", "#e63946");
+    }
+  } else if (result.status === "removed") {
+    wishlistBtn.classList.remove("added");
+    const svg = wishlistBtn.querySelector("svg");
+    if (svg) {
+      svg.setAttribute("fill", "none");
+      svg.setAttribute("stroke", "#e63946");
+    }
+  }
+
+} catch (err) {
+  console.error("❌ Error toggling wishlist:", err);
+}
         return;
       }
 
