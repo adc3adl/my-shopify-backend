@@ -82,7 +82,7 @@ function closeModal(modal) {
 
     async function fetchWishlist() {
       if (!window.customerId) {
-        productContainer.innerHTML = 'Please <a href="/account/login">log in</a> to use your wishlist ❤️';
+        productContainer.innerHTML = 'Please <a href="/account/login">log in</a> to use your wishlist ❤️';п
         return;
       }
       try {
