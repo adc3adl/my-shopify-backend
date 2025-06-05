@@ -253,6 +253,13 @@ app.get("/api/wishlist-get", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+// === TEMPORARY DEBUG ROUTE — view database entries
+app.get('/debug/all-events', (req, res) => {
+  db.all("SELECT * FROM add_to_cart_events ORDER BY created_at DESC", (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
