@@ -235,13 +235,32 @@
           try {
             e.target.disabled = true;
             e.target.textContent = "Adding...";
-            await fetch("/cart/add.js", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ id: variantId, quantity })
-            });
+                        await fetch("/cart/add.js", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ id: variantId, quantity })
+                        });
 
-            e.target.textContent = "Added!";
+                        // Логируем на backend
+                        try {
+                          await fetch(`${API_URL}/api/add-to-cart`, {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              "ngrok-skip-browser-warning": "true"
+                            },
+                            body: JSON.stringify({
+                              customerId: window.customerId,
+                              productId: variantId,
+                              quantity: quantity,
+                              source: "wishlist-modal"
+                            })
+                          });
+                        } catch (err) {
+                          console.warn("⚠️ Не удалось записать add-to-cart событие:", err);
+                        }
+
+                        e.target.textContent = "Added!";
             setTimeout(() => {
               e.target.textContent = "Add to cart";
               e.target.disabled = false;
