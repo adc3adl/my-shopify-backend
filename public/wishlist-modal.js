@@ -1,5 +1,6 @@
 (function () {
   const API_URL = "https://my-shopify-backend.onrender.com";
+  window.cachedWishlistIds = window.cachedWishlistIds || [];
 
   if (!document.getElementById("wishlist-modal-styles")) {
     const style = document.createElement("style");
@@ -95,6 +96,8 @@
           throw new Error("Expected JSON but got something else");
         }
         const data = JSON.parse(raw);
+
+        window.cachedWishlistIds = data.products?.map(p => String(p.id)) || [];
 
         if (data?.products?.length) {
           productContainer.innerHTML = data.products.map(p => `
@@ -192,21 +195,19 @@
               })
             });
             const result = await res.json();
-                    if (result?.status === "ok") {
-            console.log("⏳ Удаляем элемент с анимацией:", item);
-            item.classList.add("fading-out");
-            // 🧠 Обновим cachedWishlistIds глобально
-if (window.cachedWishlistIds) {
-  window.cachedWishlistIds = window.cachedWishlistIds.filter(id => String(id) !== variantId);
-}
-            setTimeout(() => {
-              item.remove();
+            if (result?.status === "ok") {
+              item.classList.add("fading-out");
 
-              const remainingItems = modal.querySelectorAll(".wishlist-item").length;
-              if (remainingItems === 0) {
-                productContainer.innerHTML = "Your wishlist is empty.";
-              }
-            }, 2000);
+              // ✅ Синхронизация глобального кэша
+              window.cachedWishlistIds = window.cachedWishlistIds.filter(id => String(id) !== variantId);
+
+              setTimeout(() => {
+                item.remove();
+                const remainingItems = modal.querySelectorAll(".wishlist-item").length;
+                if (remainingItems === 0) {
+                  productContainer.innerHTML = "Your wishlist is empty.";
+                }
+              }, 2000);
 
               const heartBtn = document.querySelector(`.wishlist-button[data-product-id="${variantId}"]`);
               if (heartBtn) {
@@ -216,10 +217,6 @@ if (window.cachedWishlistIds) {
                   svg.setAttribute("fill", "none");
                   svg.setAttribute("stroke", "#e63946");
                 }
-              }
-              const remainingItems = modal.querySelectorAll(".wishlist-item").length;
-              if (remainingItems === 0) {
-                productContainer.innerHTML = "Your wishlist is empty.";
               }
             }
           } catch (err) {
