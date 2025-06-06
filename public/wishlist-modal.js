@@ -301,12 +301,12 @@ fetch("/cart.js")
   .then((cart) => {
     updateCartCount(cart.item_count);
 
-    // 🔄 Попробовать обновить Drawer
-    const drawer = document.querySelector('cart-drawer');
-    if (drawer && typeof drawer.renderContents === 'function') {
-      drawer.renderContents(cart);
+    // ✅ Shopify сама откроет и обновит Drawer
+    const cartToggle = document.querySelector('[data-cart-toggle], .cart-toggle, .header__icon--cart');
+    if (cartToggle) {
+      cartToggle.click();
     } else {
-      console.warn("🧩 cart-drawer not found or renderContents unsupported");
+      window.location.href = "/cart";
     }
   });
           } catch (err) {
