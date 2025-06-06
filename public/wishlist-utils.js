@@ -1,49 +1,19 @@
 (function () {
-  // ✅ Гарантированное открытие Cart Drawer
   window.ensureCartDrawerThenOpen = function ensureCartDrawerThenOpen() {
     console.log("🛒 ensureCartDrawerThenOpen вызван");
 
-    // Если CartDrawer уже доступен — открыть сразу
-    if (typeof window.CartDrawer?.open === "function") {
-      console.log("✅ CartDrawer найден — открываем немедленно");
-      window.CartDrawer.open();
-      document.dispatchEvent(new CustomEvent("cart:refresh"));
-      return;
-    }
+    // 1. Попробуем найти кнопку открытия корзины
+    const trigger = document.querySelector('[data-cart-toggle], .cart-toggle, .header__icon--cart');
 
-    // Иначе — ждём загрузку cart-drawer.js
-    const cartDrawerScript = [...document.scripts].find(s =>
-      s.src.includes("cart-drawer.js")
-    );
-
-    if (cartDrawerScript) {
-      cartDrawerScript.addEventListener("load", () => {
-        console.log("📦 cart-drawer.js загружен — пытаемся открыть Drawer");
-        window.waitForCartDrawer();
-      });
+    if (trigger) {
+      console.log("🧪 Клик по элементу, открывающему CartDrawer");
+      trigger.click();
     } else {
-      console.warn("⚠️ cart-drawer.js не найден, пробуем с повторами");
-      window.waitForCartDrawer();
-    }
-  };
-
-  // 🔁 Повторные попытки открыть Drawer, если он ещё не готов
-  window.waitForCartDrawer = function waitForCartDrawer(retries = 10) {
-    console.log("⌛ waitForCartDrawer попытка:", retries);
-
-    if (typeof window.CartDrawer?.open === "function") {
-      console.log("✅ CartDrawer найден — открываем");
-      window.CartDrawer.open();
-      document.dispatchEvent(new CustomEvent("cart:refresh"));
-    } else if (retries > 0) {
-      setTimeout(() => window.waitForCartDrawer(retries - 1), 200);
-    } else {
-      console.warn("⚠️ CartDrawer не найден, редирект на /cart");
+      console.warn("❌ Кнопка открытия CartDrawer не найдена, редирект на /cart");
       window.location.href = "/cart";
     }
   };
 
-  // 🔢 Обновление счётчика корзины во всех местах
   window.updateCartCount = function updateCartCount(count) {
     const selectors = [
       ".cart-count-bubble",
