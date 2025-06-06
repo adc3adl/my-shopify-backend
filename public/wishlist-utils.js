@@ -1,5 +1,5 @@
-
 (function () {
+  // 🔁 Глобально доступная функция для открытия Cart Drawer
   window.ensureCartDrawerThenOpen = function ensureCartDrawerThenOpen() {
     console.log("🛒 ensureCartDrawerThenOpen вызван");
 
@@ -7,18 +7,24 @@
       fetch(window.Shopify.routes.root + '?sections=cart-drawer')
         .then(res => res.json())
         .then(data => {
-          const drawer = document.querySelector('cart-drawer');
-          if (drawer && data['cart-drawer']) {
-            drawer.innerHTML = data['cart-drawer'];
-            console.log("✅ Drawer обновлён через секции");
+          const oldDrawer = document.querySelector('cart-drawer');
+          if (oldDrawer && data['cart-drawer']) {
+            const tempWrapper = document.createElement('div');
+            tempWrapper.innerHTML = data['cart-drawer'];
 
-            const hasItems = drawer.querySelector('.cart-item, [data-cart-item]');
-            if (!hasItems) {
-              console.warn("⏳ Повторная попытка обновления Drawer");
-              setTimeout(updateCartDrawer, 300);
+            const newDrawer = tempWrapper.querySelector('cart-drawer');
+            if (newDrawer) {
+              oldDrawer.replaceWith(newDrawer);
+              console.log("✅ Drawer заменён полностью через replaceWith");
+
+              // 🧼 Убираем затемнение, если осталось
+              document.body.classList.remove('overflow-hidden');
+              document.querySelector('.overlay')?.remove();
+            } else {
+              console.warn("❌ Новый Drawer не найден в ответе");
             }
           } else {
-            console.warn("❌ Не удалось обновить Drawer через секции");
+            console.warn("❌ Не удалось заменить Drawer");
           }
         })
         .catch(err => {
@@ -28,6 +34,7 @@
 
     updateCartDrawer();
 
+    // ⏳ Через 300мс кликаем по иконке корзины
     setTimeout(() => {
       const cartToggle = document.querySelector('[data-cart-toggle], .cart-toggle, .header__icon--cart');
       if (cartToggle) {
@@ -37,15 +44,6 @@
         console.warn("❌ Кнопка открытия CartDrawer не найдена — редирект на /cart");
         window.location.href = "/cart";
       }
-
-      // ✅ Убираем затемнение и scroll lock
-setTimeout(() => {
-  document.body.classList.remove('overflow-hidden');
-  const overlay1 = document.querySelector('.overlay');
-  const overlay2 = document.querySelector('.cart-drawer__overlay');
-  if (overlay1) overlay1.remove();
-  if (overlay2) overlay2.remove();
-}, 1000);
     }, 300);
   };
 
