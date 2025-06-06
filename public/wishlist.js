@@ -414,6 +414,7 @@ if (addToCartBtn) {
     .then(() => {
       addToCartBtn.textContent = "Added!";
       setTimeout(() => {
+        console.log("✅ Редирект сработал");
         window.location.href = "/cart"; // ⏳ редирект с небольшой задержкой
       }, 700);
     })
