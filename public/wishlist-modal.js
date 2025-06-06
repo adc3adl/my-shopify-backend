@@ -221,7 +221,7 @@ function openCartDrawerSafely() {
               window.cachedWishlistIds = window.cachedWishlistIds.filter(id => String(id) !== variantId);
 
               syncWishlistButtons();
-              
+
               setTimeout(() => {
                 item.remove();
                 const remainingItems = modal.querySelectorAll(".wishlist-item").length;
@@ -296,10 +296,19 @@ function openCartDrawerSafely() {
             }, 1200);
 
             // Обновляем счётчик корзины
-            fetch("/cart.js")
-              .then((r) => r.json())
-              .then((cart) => updateCartCount(cart.item_count));
+fetch("/cart.js")
+  .then((r) => r.json())
+  .then((cart) => {
+    updateCartCount(cart.item_count);
 
+    // 🔄 Попробовать обновить Drawer
+    const drawer = document.querySelector('cart-drawer');
+    if (drawer && typeof drawer.renderContents === 'function') {
+      drawer.renderContents(cart);
+    } else {
+      console.warn("🧩 cart-drawer not found or renderContents unsupported");
+    }
+  });
           } catch (err) {
             alert("Ошибка при добавлении в корзину");
             e.target.textContent = "🛒 Add to cart";
