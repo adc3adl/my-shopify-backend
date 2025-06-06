@@ -279,11 +279,10 @@
                           console.warn("⚠️ Не удалось записать add-to-cart событие:", err);
                         }
 
-                        e.target.textContent = "Added!";
+            e.target.textContent = "Added!!!";
             setTimeout(() => {
-              e.target.textContent = "Add to cart";
-              e.target.disabled = false;
-            }, 1500);
+            window.location.href = "/cart";
+            }, 800);
 
             if (document.querySelector("#cart-count")) {
               fetch("/cart.js")
