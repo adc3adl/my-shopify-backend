@@ -239,76 +239,82 @@
           }
         }
 
-        if (e.target.classList.contains("wishlist-add-to-cart")) {
-          e.preventDefault();
-          e.stopPropagation();
-          const item = e.target.closest(".wishlist-item");
-          const variantId = item?.getAttribute("data-variant-id");
-          const qtyInput = item.querySelector(".wishlist-qty");
-          const quantity = Number(qtyInput.value) || 1;
-          if (!variantId || !quantity) return;
-          const title = decodeURIComponent(item.getAttribute("data-title") || "");
-          const url = decodeURIComponent(item.getAttribute("data-url") || "");
-          try {
-            e.target.disabled = true;
-            e.target.textContent = "Adding...";
-                        await fetch("/cart/add.js", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ id: variantId, quantity })
-                        });
+      if (e.target.classList.contains("wishlist-add-to-cart")) {
+  e.preventDefault();
+  e.stopPropagation();
 
-                        // Логируем на backend
-                        try {
-                          await fetch(`${API_URL}/api/add-to-cart`, {
-                            method: "POST",
-                            headers: {
-                              "Content-Type": "application/json",
-                              "ngrok-skip-browser-warning": "true"
-                            },
-                            body: JSON.stringify({
-                              customerId: window.customerId,
-                              productId: variantId,
-                              quantity: quantity,
-                              source: "wishlist-modal",
-                              title, 
-                              url   
-                            })
-                          });
-                        } catch (err) {
-                          console.warn("⚠️ Не удалось записать add-to-cart событие:", err);
-                        }
+  const item = e.target.closest(".wishlist-item");
+  const variantId = item?.getAttribute("data-variant-id");
+  const qtyInput = item.querySelector(".wishlist-qty");
+  const quantity = Number(qtyInput.value) || 1;
 
-            e.target.textContent = "Added";
-              setTimeout(() => {
-    addToCartBtn.textContent = "🛒 Add to cart";
-    addToCartBtn.disabled = false;
+  if (!variantId || !quantity) return;
 
-    // ✅ Попытка открыть drawer корзину
-    if (window.CartDrawer && typeof window.CartDrawer.open === "function") {
-      window.CartDrawer.open();
-    } else {
-      window.location.href = "/cart";
+  const title = decodeURIComponent(item.getAttribute("data-title") || "");
+  const url = decodeURIComponent(item.getAttribute("data-url") || "");
+
+  try {
+    e.target.disabled = true;
+    e.target.textContent = "Adding...";
+
+    await fetch("/cart/add.js", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: variantId, quantity })
+    });
+
+    // Логируем на backend
+    try {
+      await fetch(`${API_URL}/api/add-to-cart`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true"
+        },
+        body: JSON.stringify({
+          customerId: window.customerId,
+          productId: variantId,
+          quantity,
+          source: "wishlist-modal",
+          title,
+          url
+        })
+      });
+    } catch (err) {
+      console.warn("⚠️ Не удалось записать add-to-cart событие:", err);
     }
 
-  }, 1200);
+    e.target.textContent = "Added!";
 
-            if (document.querySelector("#cart-count")) {
-              fetch("/cart.js")
-                .then(r => r.json())
-                .then(cart => {
-                  updateCartCount(cart.item_count);
-                });
+    setTimeout(() => {
+      e.target.textContent = "🛒 Add to cart";
+      e.target.disabled = false;
 
-            }
-          } catch (err) {
-            alert("Ошибка при добавлении в корзину");
-            e.target.textContent = "Add to cart";
-            e.target.disabled = false;
-            console.error("❌ Error adding to cart:", err);
-          }
-        }
-      });
+      // ✅ Открываем Drawer или редиректим
+      if (window.CartDrawer && typeof window.CartDrawer.open === "function") {
+        window.CartDrawer.open();
+      } else {
+        window.location.href = "/cart";
+      }
+    }, 1200);
+
+    // Обновляем счетчик корзины
+    if (document.querySelector("#cart-count")) {
+      fetch("/cart.js")
+        .then((r) => r.json())
+        .then((cart) => {
+          updateCartCount(cart.item_count);
+        });
+    }
+
+  } catch (err) {
+    alert("Ошибка при добавлении в корзину");
+    e.target.textContent = "🛒 Add to cart";
+    e.target.disabled = false;
+    console.error("❌ Error adding to cart:", err);
+  }
+}
+ });
 
       productContainer.addEventListener("change", async (e) => {
         if (e.target.classList.contains("wishlist-qty")) {
