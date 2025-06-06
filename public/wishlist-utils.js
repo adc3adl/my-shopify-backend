@@ -1,5 +1,5 @@
+
 (function () {
-  // 🔁 Глобально доступная функция для открытия Cart Drawer
   window.ensureCartDrawerThenOpen = function ensureCartDrawerThenOpen() {
     console.log("🛒 ensureCartDrawerThenOpen вызван");
 
@@ -26,10 +26,8 @@
         });
     }
 
-    // 🔄 Начинаем обновление содержимого Drawer
     updateCartDrawer();
 
-    // ⏳ Через 300мс кликаем по иконке корзины
     setTimeout(() => {
       const cartToggle = document.querySelector('[data-cart-toggle], .cart-toggle, .header__icon--cart');
       if (cartToggle) {
@@ -40,12 +38,14 @@
         window.location.href = "/cart";
       }
 
-      // 🧼 Убираем затемнение, если осталось
-      setTimeout(() => {
-        document.body.classList.remove('overflow-hidden');
-        const overlay = document.querySelector('.overlay');
-        if (overlay) overlay.remove();
-      }, 1000);
+      // ✅ Убираем затемнение и scroll lock
+setTimeout(() => {
+  document.body.classList.remove('overflow-hidden');
+  const overlay1 = document.querySelector('.overlay');
+  const overlay2 = document.querySelector('.cart-drawer__overlay');
+  if (overlay1) overlay1.remove();
+  if (overlay2) overlay2.remove();
+}, 1000);
     }, 300);
   };
 

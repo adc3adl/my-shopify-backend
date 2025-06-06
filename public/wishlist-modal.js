@@ -245,77 +245,74 @@ function openCartDrawerSafely() {
           }
         }
 
-        if (e.target.classList.contains("wishlist-add-to-cart")) {
-          e.preventDefault();
-          e.stopPropagation();
+if (e.target.classList.contains("wishlist-add-to-cart")) {
+  e.preventDefault();
+  e.stopPropagation();
 
-          const item = e.target.closest(".wishlist-item");
-          const variantId = item?.getAttribute("data-variant-id");
-          const qtyInput = item.querySelector(".wishlist-qty");
-          const quantity = Number(qtyInput.value) || 1;
+  const item = e.target.closest(".wishlist-item");
+  const variantId = item?.getAttribute("data-variant-id");
+  const qtyInput = item.querySelector(".wishlist-qty");
+  const quantity = Number(qtyInput.value) || 1;
 
-          if (!variantId || !quantity) return;
+  if (!variantId || !quantity) return;
 
-          const title = decodeURIComponent(item.getAttribute("data-title") || "");
-          const url = decodeURIComponent(item.getAttribute("data-url") || "");
+  const title = decodeURIComponent(item.getAttribute("data-title") || "");
+  const url = decodeURIComponent(item.getAttribute("data-url") || "");
 
-          try {
-            e.target.disabled = true;
-            e.target.textContent = "Adding...";
+  try {
+    e.target.disabled = true;
+    e.target.textContent = "Adding...";
 
-            await fetch("/cart/add.js", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ id: variantId, quantity })
-            });
+    await fetch("/cart/add.js", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: variantId, quantity })
+    });
 
-            await fetch(`${API_URL}/api/add-to-cart`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "ngrok-skip-browser-warning": "true"
-              },
-              body: JSON.stringify({
-                customerId: window.customerId,
-                productId: variantId,
-                quantity,
-                source: "wishlist-modal",
-                title,
-                url
-              })
-            });
+    await fetch(`${API_URL}/api/add-to-cart`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true"
+      },
+      body: JSON.stringify({
+        customerId: window.customerId,
+        productId: variantId,
+        quantity,
+        source: "wishlist-modal",
+        title,
+        url
+      })
+    });
 
-            e.target.textContent = "Added!";
+    e.target.textContent = "Added!";
 
-            setTimeout(() => {
-              e.target.textContent = "🛒 Add to cart";
-              e.target.disabled = false;
+    setTimeout(() => {
+      e.target.textContent = "🛒 Add to cart";
+      e.target.disabled = false;
+    }, 1200);
 
-              // ✅ Открываем Drawer надёжно
-              openCartDrawerSafely();
-            }, 1200);
+    // ✅ Обновляем счётчик корзины
+    fetch("/cart.js")
+      .then((r) => r.json())
+      .then((cart) => {
+        updateCartCount(cart.item_count);
 
-            // Обновляем счётчик корзины
-fetch("/cart.js")
-  .then((r) => r.json())
-  .then((cart) => {
-    updateCartCount(cart.item_count);
+        // ✅ Только вызов глобальной функции
+        ensureCartDrawerThenOpen();
 
-    // ✅ Shopify сама откроет и обновит Drawer
-    const cartToggle = document.querySelector('[data-cart-toggle], .cart-toggle, .header__icon--cart');
-    if (cartToggle) {
-      cartToggle.click();
-    } else {
-      window.location.href = "/cart";
-    }
-  });
-          } catch (err) {
-            alert("Ошибка при добавлении в корзину");
-            e.target.textContent = "🛒 Add to cart";
-            e.target.disabled = false;
-            console.error("❌ Error adding to cart:", err);
-          }
-        }
+        // 🟢 Опционально: событие для темы
+        document.dispatchEvent(new CustomEvent("cart:refresh"));
+      });
+
+  } catch (err) {
+    alert("Ошибка при добавлении в корзину");
+    e.target.textContent = "🛒 Add to cart";
+    e.target.disabled = false;
+    console.error("❌ Error adding to cart:", err);
+  }
+}
+
       });
 
       productContainer.addEventListener("change", async (e) => {
