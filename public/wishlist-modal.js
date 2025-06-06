@@ -137,7 +137,7 @@
   </div>
 
   <button type="button" class="wishlist-add-to-cart">
-    🛒 Add to cart!
+    🛒 Add to cart
   </button>
 
   <button type="button" class="wishlist-remove">
@@ -279,7 +279,7 @@
                           console.warn("⚠️ Не удалось записать add-to-cart событие:", err);
                         }
 
-            e.target.textContent = "Added!!!";
+            e.target.textContent = "Added";
             setTimeout(() => {
             window.location.href = "/cart";
             }, 800);
