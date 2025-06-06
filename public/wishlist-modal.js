@@ -76,6 +76,21 @@
   }
 
   function main() {
+                    function updateCartCount(count) {
+                  const selectors = [
+                    ".cart-count-bubble",
+                    ".cart-count",
+                    "#cart-count",
+                    "[data-cart-count]",
+                  ];
+
+                  selectors.forEach(selector => {
+                    document.querySelectorAll(selector).forEach(el => {
+                      el.textContent = count;
+                      el.classList.add("visible");
+                    });
+                  });
+                }
     const toggleBtn = document.getElementById("wishlist-toggle");
     const modal = document.getElementById("wishlist-modal");
     const closeBtn = document.getElementById("wishlist-close");
@@ -274,8 +289,9 @@
               fetch("/cart.js")
                 .then(r => r.json())
                 .then(cart => {
-                  document.querySelector("#cart-count").textContent = cart.item_count;
+                  updateCartCount(cart.item_count);
                 });
+
             }
           } catch (err) {
             alert("Ошибка при добавлении в корзину");
