@@ -42,4 +42,19 @@
       });
     });
   };
+
+  // ✅ Добавлено: синхронизация состояния сердечек
+  window.syncWishlistButtons = function syncWishlistButtons() {
+    const buttons = document.querySelectorAll(".wishlist-button");
+    if (!window.cachedWishlistIds || !buttons.length) return;
+
+    buttons.forEach((btn) => {
+      const id = btn.getAttribute("data-product-id");
+      if (window.cachedWishlistIds.includes(id)) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    });
+  };
 })();

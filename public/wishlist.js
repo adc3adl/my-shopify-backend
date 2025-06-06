@@ -338,6 +338,8 @@ document.addEventListener("click", async function (e) {
         }
       });
 
+        syncWishlistButtons();
+
     } catch (err) {
       console.error("❌ Error toggling wishlist:", err);
     }
@@ -359,6 +361,8 @@ document.addEventListener("click", async function (e) {
          if (res.ok) {
   // 🧠 Обновим локальный кэш — удалим ID
   cachedWishlistIds = cachedWishlistIds.filter(id => String(id) !== productId);
+
+  syncWishlistButtons(); 
 
   // 🛡️ И добавим в защитный кэш от двойных кликов
   window.__wishlistRemovedCache = window.__wishlistRemovedCache || new Set();

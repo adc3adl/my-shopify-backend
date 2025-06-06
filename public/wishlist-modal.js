@@ -117,7 +117,8 @@ function openCartDrawerSafely() {
         const data = JSON.parse(raw);
 
         window.cachedWishlistIds = data.products?.map(p => String(p.id)) || [];
-
+        syncWishlistButtons();
+  
         if (data?.products?.length) {
           productContainer.innerHTML = data.products.map(p => `
 <div class="wishlist-item"
@@ -219,6 +220,8 @@ function openCartDrawerSafely() {
 
               window.cachedWishlistIds = window.cachedWishlistIds.filter(id => String(id) !== variantId);
 
+              syncWishlistButtons();
+              
               setTimeout(() => {
                 item.remove();
                 const remainingItems = modal.querySelectorAll(".wishlist-item").length;
