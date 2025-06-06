@@ -92,19 +92,7 @@
 
   function openCartDrawerSafely() {
     // Для Dawn темы
-    if (typeof window.CartDrawer?.open === "function") {
-      window.CartDrawer.open();
-      document.dispatchEvent(new CustomEvent("cart:refresh"));
-    } else {
-      // Альтернатива — событие, если Drawer слушает
-      document.dispatchEvent(new CustomEvent("cart:refresh", { detail: { openDrawer: true } }));
-      // Если всё равно не сработает — fallback
-      setTimeout(() => {
-        if (!document.querySelector("cart-drawer[open]")) {
-          window.location.href = "/cart";
-        }
-      }, 300);
-    }
+    waitForCartDrawer();
   }
 
   function main() {
@@ -354,3 +342,13 @@
     main();
   }
 })();
+function waitForCartDrawer(retries = 10) {
+  if (typeof window.CartDrawer?.open === "function") {
+    window.CartDrawer.open();
+    document.dispatchEvent(new CustomEvent("cart:refresh"));
+  } else if (retries > 0) {
+    setTimeout(() => waitForCartDrawer(retries - 1), 200);
+  } else {
+    window.location.href = "/cart"; // fallback
+  }
+}

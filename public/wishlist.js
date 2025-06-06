@@ -427,18 +427,7 @@ if (addToCartBtn) {
 
   setTimeout(() => {
     // ✅ Пытаемся открыть Drawer, как в Dawn
-    if (typeof window.CartDrawer?.open === "function") {
-      window.CartDrawer.open();
-      document.dispatchEvent(new CustomEvent("cart:refresh"));
-    } else {
-      document.dispatchEvent(new CustomEvent("cart:refresh", { detail: { openDrawer: true } }));
-      // fallback через редирект
-      setTimeout(() => {
-        if (!document.querySelector("cart-drawer[open]")) {
-          window.location.href = "/cart";
-        }
-      }, 300);
-    }
+waitForCartDrawer();
   }, 400);
 })
     .catch(err => {
@@ -487,3 +476,14 @@ if (e.target.id === "wishlist-login-close") {
     main();
   }
 })();
+
+function waitForCartDrawer(retries = 10) {
+  if (typeof window.CartDrawer?.open === "function") {
+    window.CartDrawer.open();
+    document.dispatchEvent(new CustomEvent("cart:refresh"));
+  } else if (retries > 0) {
+    setTimeout(() => waitForCartDrawer(retries - 1), 200);
+  } else {
+    window.location.href = "/cart"; // fallback
+  }
+}
