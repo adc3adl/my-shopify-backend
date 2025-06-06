@@ -3,27 +3,33 @@
   window.ensureCartDrawerThenOpen = function ensureCartDrawerThenOpen() {
     console.log("🛒 ensureCartDrawerThenOpen вызван");
 
-    
-setTimeout(() => {
-  const cartToggle = document.querySelector('[data-cart-toggle], .cart-toggle, .header__icon--cart');
-  if (cartToggle) {
-    console.log("🧪 Клик по иконке корзины для обновления Drawer");
-    cartToggle.click();
-  } else {
-    console.warn("❌ Кнопка открытия CartDrawer не найдена, редирект на /cart");
-    window.location.href = "/cart";
-  }
-}, 300);
+    // 🔄 Пробуем обновить содержимое cart-drawer через sections API
+    fetch(window.Shopify.routes.root + '?sections=cart-drawer')
+      .then(res => res.json())
+      .then(data => {
+        const drawer = document.querySelector('cart-drawer');
+        if (drawer && data['cart-drawer']) {
+          drawer.innerHTML = data['cart-drawer'];
+          console.log("✅ Drawer обновлён через секции");
+        } else {
+          console.warn("❌ Не удалось обновить Drawer через секции");
+        }
+      })
+      .catch(err => {
+        console.error("❌ Ошибка при обновлении Drawer:", err);
+      });
 
-    // Ищем кнопку, которая открывает корзину (Cart Drawer)
-    const trigger = document.querySelector('[data-cart-toggle], .cart-toggle, .header__icon--cart');
-    if (trigger) {
-      console.log("🧪 Клик по иконке корзины");
-      trigger.click();
-    } else {
-      console.warn("❌ Кнопка открытия CartDrawer не найдена — редирект на /cart");
-      window.location.href = "/cart";
-    }
+    // ⏳ Затем через 300ms кликаем по иконке корзины
+    setTimeout(() => {
+      const cartToggle = document.querySelector('[data-cart-toggle], .cart-toggle, .header__icon--cart');
+      if (cartToggle) {
+        console.log("🧪 Клик по иконке корзины");
+        cartToggle.click();
+      } else {
+        console.warn("❌ Кнопка открытия CartDrawer не найдена — редирект на /cart");
+        window.location.href = "/cart";
+      }
+    }, 300);
   };
 
   // 🔢 Обновление счётчика товаров
