@@ -293,6 +293,7 @@
       // ✅ Открываем Drawer или редиректим
       if (window.CartDrawer && typeof window.CartDrawer.open === "function") {
         window.CartDrawer.open();
+        document.dispatchEvent(new CustomEvent("cart:refresh"));
       } else {
         window.location.href = "/cart";
       }
