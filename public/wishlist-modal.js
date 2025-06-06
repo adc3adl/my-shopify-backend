@@ -341,22 +341,3 @@ function openCartDrawerSafely() {
     main();
   }
 })();
-function waitForCartDrawer(retries = 10) {
-  if (typeof window.CartDrawer?.open === "function") {
-    window.CartDrawer.open();
-    document.dispatchEvent(new CustomEvent("cart:refresh"));
-  } else if (retries > 0) {
-    ensureCartDrawerThenOpen();
-  } else {
-    window.location.href = "/cart"; // fallback
-  }
-}
-
-function ensureCartDrawerThenOpen() {
-  const cartDrawerScript = [...document.scripts].find(s => s.src.includes("cart-drawer.js"));
-  if (cartDrawerScript) {
-    cartDrawerScript.addEventListener("load", () => waitForCartDrawer());
-  } else {
-    waitForCartDrawer();
-  }
-}
