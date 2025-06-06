@@ -75,22 +75,39 @@
     }, 300);
   }
 
-  function main() {
-                    function updateCartCount(count) {
-                  const selectors = [
-                    ".cart-count-bubble",
-                    ".cart-count",
-                    "#cart-count",
-                    "[data-cart-count]",
-                  ];
+  function updateCartCount(count) {
+    const selectors = [
+      ".cart-count-bubble",
+      ".cart-count",
+      "#cart-count",
+      "[data-cart-count]",
+    ];
+    selectors.forEach((selector) => {
+      document.querySelectorAll(selector).forEach((el) => {
+        el.textContent = count;
+        el.classList.add("visible");
+      });
+    });
+  }
 
-                  selectors.forEach(selector => {
-                    document.querySelectorAll(selector).forEach(el => {
-                      el.textContent = count;
-                      el.classList.add("visible");
-                    });
-                  });
-                }
+  function openCartDrawerSafely() {
+    // Для Dawn темы
+    if (typeof window.CartDrawer?.open === "function") {
+      window.CartDrawer.open();
+      document.dispatchEvent(new CustomEvent("cart:refresh"));
+    } else {
+      // Альтернатива — событие, если Drawer слушает
+      document.dispatchEvent(new CustomEvent("cart:refresh", { detail: { openDrawer: true } }));
+      // Если всё равно не сработает — fallback
+      setTimeout(() => {
+        if (!document.querySelector("cart-drawer[open]")) {
+          window.location.href = "/cart";
+        }
+      }, 300);
+    }
+  }
+
+  function main() {
     const toggleBtn = document.getElementById("wishlist-toggle");
     const modal = document.getElementById("wishlist-modal");
     const closeBtn = document.getElementById("wishlist-close");
@@ -213,7 +230,6 @@
             if (result?.status === "ok") {
               item.classList.add("fading-out");
 
-              // ✅ Синхронизация глобального кэша
               window.cachedWishlistIds = window.cachedWishlistIds.filter(id => String(id) !== variantId);
 
               setTimeout(() => {
@@ -222,7 +238,7 @@
                 if (remainingItems === 0) {
                   productContainer.innerHTML = "Your wishlist is empty.";
                 }
-              }, 2000);
+              }, 1000);
 
               const heartBtn = document.querySelector(`.wishlist-button[data-product-id="${variantId}"]`);
               if (heartBtn) {
@@ -239,83 +255,69 @@
           }
         }
 
-      if (e.target.classList.contains("wishlist-add-to-cart")) {
-  e.preventDefault();
-  e.stopPropagation();
+        if (e.target.classList.contains("wishlist-add-to-cart")) {
+          e.preventDefault();
+          e.stopPropagation();
 
-  const item = e.target.closest(".wishlist-item");
-  const variantId = item?.getAttribute("data-variant-id");
-  const qtyInput = item.querySelector(".wishlist-qty");
-  const quantity = Number(qtyInput.value) || 1;
+          const item = e.target.closest(".wishlist-item");
+          const variantId = item?.getAttribute("data-variant-id");
+          const qtyInput = item.querySelector(".wishlist-qty");
+          const quantity = Number(qtyInput.value) || 1;
 
-  if (!variantId || !quantity) return;
+          if (!variantId || !quantity) return;
 
-  const title = decodeURIComponent(item.getAttribute("data-title") || "");
-  const url = decodeURIComponent(item.getAttribute("data-url") || "");
+          const title = decodeURIComponent(item.getAttribute("data-title") || "");
+          const url = decodeURIComponent(item.getAttribute("data-url") || "");
 
-  try {
-    e.target.disabled = true;
-    e.target.textContent = "Adding...";
+          try {
+            e.target.disabled = true;
+            e.target.textContent = "Adding...";
 
-    await fetch("/cart/add.js", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: variantId, quantity })
-    });
+            await fetch("/cart/add.js", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: variantId, quantity })
+            });
 
-    // Логируем на backend
-    try {
-      await fetch(`${API_URL}/api/add-to-cart`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "true"
-        },
-        body: JSON.stringify({
-          customerId: window.customerId,
-          productId: variantId,
-          quantity,
-          source: "wishlist-modal",
-          title,
-          url
-        })
+            await fetch(`${API_URL}/api/add-to-cart`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "ngrok-skip-browser-warning": "true"
+              },
+              body: JSON.stringify({
+                customerId: window.customerId,
+                productId: variantId,
+                quantity,
+                source: "wishlist-modal",
+                title,
+                url
+              })
+            });
+
+            e.target.textContent = "Added!";
+
+            setTimeout(() => {
+              e.target.textContent = "🛒 Add to cart";
+              e.target.disabled = false;
+
+              // ✅ Открываем Drawer надёжно
+              openCartDrawerSafely();
+            }, 1200);
+
+            // Обновляем счётчик корзины
+            fetch("/cart.js")
+              .then((r) => r.json())
+              .then((cart) => updateCartCount(cart.item_count));
+
+          } catch (err) {
+            alert("Ошибка при добавлении в корзину");
+            e.target.textContent = "🛒 Add to cart";
+            e.target.disabled = false;
+            console.error("❌ Error adding to cart:", err);
+          }
+        }
       });
-    } catch (err) {
-      console.warn("⚠️ Не удалось записать add-to-cart событие:", err);
-    }
-
-    e.target.textContent = "Added!";
-
-    setTimeout(() => {
-      e.target.textContent = "🛒 Add to cart";
-      e.target.disabled = false;
-
-      // ✅ Открываем Drawer или редиректим
-      if (window.CartDrawer && typeof window.CartDrawer.open === "function") {
-        window.CartDrawer.open();
-        document.dispatchEvent(new CustomEvent("cart:refresh"));
-      } else {
-        window.location.href = "/cart";
-      }
-    }, 1200);
-
-    // Обновляем счетчик корзины
-    if (document.querySelector("#cart-count")) {
-      fetch("/cart.js")
-        .then((r) => r.json())
-        .then((cart) => {
-          updateCartCount(cart.item_count);
-        });
-    }
-
-  } catch (err) {
-    alert("Ошибка при добавлении в корзину");
-    e.target.textContent = "🛒 Add to cart";
-    e.target.disabled = false;
-    console.error("❌ Error adding to cart:", err);
-  }
-}
- });
 
       productContainer.addEventListener("change", async (e) => {
         if (e.target.classList.contains("wishlist-qty")) {
