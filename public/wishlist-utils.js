@@ -1,36 +1,31 @@
 (function () {
-  // ✅ Обновление Cart Drawer и ререндер
+  // 🔁 Глобально доступная функция для открытия Cart Drawer
   window.ensureCartDrawerThenOpen = function ensureCartDrawerThenOpen() {
     console.log("🛒 ensureCartDrawerThenOpen вызван");
 
-    const trigger = document.querySelector('[data-cart-toggle], .cart-toggle, .header__icon--cart');
+    // Пробуем принудительно отрендерить содержимое drawer'а
     const drawer = document.querySelector('cart-drawer');
-
     if (drawer && typeof drawer.renderContents === 'function') {
-      console.log("🔄 renderContents вызывается");
+      console.log("✅ cart-drawer.renderContents вызван");
       fetch('/cart.js')
-        .then(r => r.json())
-        .then(cart => {
+        .then((r) => r.json())
+        .then((cart) => {
           drawer.renderContents(cart);
-          if (trigger) {
-            console.log("🧪 Клик по триггеру после renderContents");
-            trigger.click();
-          } else {
-            console.warn("❌ Триггер не найден, редирект на /cart");
-            window.location.href = "/cart";
-          }
         });
+    }
+
+    // Ищем кнопку, которая открывает корзину (Cart Drawer)
+    const trigger = document.querySelector('[data-cart-toggle], .cart-toggle, .header__icon--cart');
+    if (trigger) {
+      console.log("🧪 Клик по иконке корзины");
+      trigger.click();
     } else {
-      console.warn("⚠️ Drawer не найден или не поддерживает renderContents");
-      if (trigger) {
-        trigger.click();
-      } else {
-        window.location.href = "/cart";
-      }
+      console.warn("❌ Кнопка открытия CartDrawer не найдена — редирект на /cart");
+      window.location.href = "/cart";
     }
   };
 
-  // 🔢 Обновление счётчика корзины в хедере
+  // 🔢 Обновление счётчика товаров
   window.updateCartCount = function updateCartCount(count) {
     const selectors = [
       ".cart-count-bubble",
@@ -60,7 +55,7 @@
     });
   };
 
-  // ❤️ Синхронизация состояния кнопок Wishlist
+  // 💖 Синхронизация состояния иконок wishlist
   window.syncWishlistButtons = function syncWishlistButtons() {
     const buttons = document.querySelectorAll(".wishlist-button");
     if (!window.cachedWishlistIds || !buttons.length) return;
