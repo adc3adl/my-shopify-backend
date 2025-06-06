@@ -411,13 +411,36 @@ if (addToCartBtn) {
         })
       });
     })
-    .then(() => {
-      addToCartBtn.textContent = "Added!";
+.then(() => {
+  addToCartBtn.textContent = "Added!";
+
+  // Обновим счётчик корзины
+  fetch('/cart.js')
+    .then((res) => res.json())
+    .then((cart) => {
+      const count = cart?.item_count || 0;
+      document.querySelectorAll('.cart-count-bubble, .cart-count, #cart-count').forEach(el => {
+        el.textContent = count;
+        el.classList.add('visible');
+      });
+    });
+
+  setTimeout(() => {
+    // ✅ Пытаемся открыть Drawer, как в Dawn
+    if (typeof window.CartDrawer?.open === "function") {
+      window.CartDrawer.open();
+      document.dispatchEvent(new CustomEvent("cart:refresh"));
+    } else {
+      document.dispatchEvent(new CustomEvent("cart:refresh", { detail: { openDrawer: true } }));
+      // fallback через редирект
       setTimeout(() => {
-        console.log("✅ Редирект сработал");
-        window.location.href = "/cart"; // ⏳ редирект с небольшой задержкой
-      }, 700);
-    })
+        if (!document.querySelector("cart-drawer[open]")) {
+          window.location.href = "/cart";
+        }
+      }, 300);
+    }
+  }, 400);
+})
     .catch(err => {
       addToCartBtn.textContent = "Error";
       setTimeout(() => {
