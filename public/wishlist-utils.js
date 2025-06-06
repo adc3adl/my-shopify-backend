@@ -1,19 +1,36 @@
 (function () {
+  // ✅ Обновление Cart Drawer и ререндер
   window.ensureCartDrawerThenOpen = function ensureCartDrawerThenOpen() {
     console.log("🛒 ensureCartDrawerThenOpen вызван");
 
-    // 1. Попробуем найти кнопку открытия корзины
     const trigger = document.querySelector('[data-cart-toggle], .cart-toggle, .header__icon--cart');
+    const drawer = document.querySelector('cart-drawer');
 
-    if (trigger) {
-      console.log("🧪 Клик по элементу, открывающему CartDrawer");
-      trigger.click();
+    if (drawer && typeof drawer.renderContents === 'function') {
+      console.log("🔄 renderContents вызывается");
+      fetch('/cart.js')
+        .then(r => r.json())
+        .then(cart => {
+          drawer.renderContents(cart);
+          if (trigger) {
+            console.log("🧪 Клик по триггеру после renderContents");
+            trigger.click();
+          } else {
+            console.warn("❌ Триггер не найден, редирект на /cart");
+            window.location.href = "/cart";
+          }
+        });
     } else {
-      console.warn("❌ Кнопка открытия CartDrawer не найдена, редирект на /cart");
-      window.location.href = "/cart";
+      console.warn("⚠️ Drawer не найден или не поддерживает renderContents");
+      if (trigger) {
+        trigger.click();
+      } else {
+        window.location.href = "/cart";
+      }
     }
   };
 
+  // 🔢 Обновление счётчика корзины в хедере
   window.updateCartCount = function updateCartCount(count) {
     const selectors = [
       ".cart-count-bubble",
@@ -43,7 +60,7 @@
     });
   };
 
-  // ✅ Добавлено: синхронизация состояния сердечек
+  // ❤️ Синхронизация состояния кнопок Wishlist
   window.syncWishlistButtons = function syncWishlistButtons() {
     const buttons = document.querySelectorAll(".wishlist-button");
     if (!window.cachedWishlistIds || !buttons.length) return;
