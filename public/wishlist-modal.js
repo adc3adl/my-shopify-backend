@@ -137,7 +137,7 @@
   </div>
 
   <button type="button" class="wishlist-add-to-cart">
-    🛒 Add to cart
+    🛒 Add to cart!
   </button>
 
   <button type="button" class="wishlist-remove">
