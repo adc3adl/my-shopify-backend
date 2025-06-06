@@ -375,51 +375,60 @@ document.addEventListener("click", async function (e) {
         return;
       }
 
-      const addToCartBtn = e.target.closest(".wishlist-add-to-cart");
-      if (addToCartBtn) {
-        const productId = addToCartBtn.getAttribute("data-product-id");
-        let customerId = getCustomerId();
-        const itemDiv = addToCartBtn.closest('.wishlist-item');
-        const productTitle = itemDiv?.querySelector('a')?.textContent || "";
-        const productUrl = itemDiv?.querySelector('a')?.href || "";
+const addToCartBtn = e.target.closest(".wishlist-add-to-cart");
+if (addToCartBtn) {
+  const productId = addToCartBtn.getAttribute("data-product-id");
+  let customerId = getCustomerId();
+  const itemDiv = addToCartBtn.closest('.wishlist-item');
+  const productTitle = itemDiv?.querySelector('a')?.textContent || "";
+  const productUrl = itemDiv?.querySelector('a')?.href || "";
 
-        addToCartBtn.disabled = true;
-        addToCartBtn.textContent = "Adding...";
+  addToCartBtn.disabled = true;
+  addToCartBtn.textContent = "Adding...";
 
-        fetch('/cart/add.js', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: productId, quantity: 1 })
-        }).then(res => {
-          if (!res.ok) throw new Error('Shopify cart add error');
-          return res.json();
-        }).then(() => {
-          return fetch(`${API_URL}/api/add-to-cart`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'ngrok-skip-browser-warning': 'true',
-              'X-From-Wishlist': 'true'
-            },
-            body: JSON.stringify({ productId, title: productTitle, url: productUrl, customerId: customerId || "" })
-          });
-        }).then(() => {
-          addToCartBtn.textContent = "Added!";
-          setTimeout(() => {
-            addToCartBtn.textContent = "🛒 Add to cart";
-            addToCartBtn.disabled = false;
-          }, 1200);
-        }).catch(err => {
-          addToCartBtn.textContent = "Error";
-          setTimeout(() => {
-            addToCartBtn.textContent = "🛒 Add to cart";
-            addToCartBtn.disabled = false;
-          }, 1200);
-          alert("Ошибка при добавлении в корзину");
-          console.error("❌ Add to cart error:", err);
-        });
-        return;
-      }
+  fetch('/cart/add.js', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: productId, quantity: 1 })
+  })
+    .then(res => {
+      if (!res.ok) throw new Error('Shopify cart add error');
+      return res.json();
+    })
+    .then(() => {
+      return fetch(`${API_URL}/api/add-to-cart`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          'X-From-Wishlist': 'true'
+        },
+        body: JSON.stringify({
+          productId,
+          title: productTitle,
+          url: productUrl,
+          customerId: customerId || ""
+        })
+      });
+    })
+    .then(() => {
+      addToCartBtn.textContent = "Added!";
+      setTimeout(() => {
+        window.location.href = "/cart"; // ⏳ редирект с небольшой задержкой
+      }, 700);
+    })
+    .catch(err => {
+      addToCartBtn.textContent = "Error";
+      setTimeout(() => {
+        addToCartBtn.textContent = "🛒 Add to cart";
+        addToCartBtn.disabled = false;
+      }, 1200);
+      alert("Ошибка при добавлении в корзину");
+      console.error("❌ Add to cart error:", err);
+    });
+
+  return;
+}
 
       if (e.target.id === "wishlist-open") {
         let customerId = getCustomerId();
