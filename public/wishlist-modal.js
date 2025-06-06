@@ -59,21 +59,23 @@
     document.head.appendChild(style);
   }
 
-  function openModal(modal) {
-    modal.classList.remove("hidden");
-    setTimeout(() => {
-      modal.classList.add("show");
-    }, 10);
-  }
+function openModal(modal) {
+  modal.classList.remove("hiding", "hidden");
+  requestAnimationFrame(() => {
+    modal.classList.add("show");
+    console.log("[Wishlist Modal] Открытие с анимацией. Классы:", modal.className);
+  });
+}
 
-  function closeModal(modal) {
-    modal.classList.remove("fade-in");
-    modal.classList.add("fade-out");
-    setTimeout(() => {
-      modal.classList.add("hidden");
-      modal.classList.remove("fade-out");
-    }, 300);
-  }
+function closeModal(modal) {
+  modal.classList.remove("show");
+  modal.classList.add("hiding");
+  setTimeout(() => {
+    modal.classList.add("hidden");
+    modal.classList.remove("hiding");
+    console.log("[Wishlist Modal] Закрытие завершено. Классы:", modal.className);
+  }, 400);
+}
 
   function updateCartCount(count) {
     const selectors = [
