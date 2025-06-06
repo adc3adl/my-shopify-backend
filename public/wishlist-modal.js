@@ -280,9 +280,18 @@
                         }
 
             e.target.textContent = "Added";
-            setTimeout(() => {
-            window.location.href = "/cart";
-            }, 800);
+              setTimeout(() => {
+    addToCartBtn.textContent = "🛒 Add to cart";
+    addToCartBtn.disabled = false;
+
+    // ✅ Попытка открыть drawer корзину
+    if (window.CartDrawer && typeof window.CartDrawer.open === "function") {
+      window.CartDrawer.open();
+    } else {
+      window.location.href = "/cart";
+    }
+
+  }, 1200);
 
             if (document.querySelector("#cart-count")) {
               fetch("/cart.js")
