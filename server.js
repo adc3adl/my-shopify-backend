@@ -92,7 +92,7 @@ app.get('/auth/callback', async (req, res) => {
 
     db.prepare("INSERT OR REPLACE INTO shop_tokens (shop, token) VALUES (?, ?)").run(shop, accessToken);
 
-    const scriptFiles = ["wishlist-modal.js", "wishlist.js", "add-to-cart.js"];
+    const scriptFiles = ["wishlist-utils.js","wishlist-modal.js", "wishlist.js", "add-to-cart.js"];
     let results = [];
     for (const scriptName of scriptFiles) {
       const scriptUrl = `${APP_URL}/${scriptName}`;
