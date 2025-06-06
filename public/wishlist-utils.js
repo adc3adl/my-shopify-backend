@@ -3,23 +3,33 @@
   window.ensureCartDrawerThenOpen = function ensureCartDrawerThenOpen() {
     console.log("🛒 ensureCartDrawerThenOpen вызван");
 
-    // 🔄 Пробуем обновить содержимое cart-drawer через sections API
-    fetch(window.Shopify.routes.root + '?sections=cart-drawer')
-      .then(res => res.json())
-      .then(data => {
-        const drawer = document.querySelector('cart-drawer');
-        if (drawer && data['cart-drawer']) {
-          drawer.innerHTML = data['cart-drawer'];
-          console.log("✅ Drawer обновлён через секции");
-        } else {
-          console.warn("❌ Не удалось обновить Drawer через секции");
-        }
-      })
-      .catch(err => {
-        console.error("❌ Ошибка при обновлении Drawer:", err);
-      });
+    function updateCartDrawer() {
+      fetch(window.Shopify.routes.root + '?sections=cart-drawer')
+        .then(res => res.json())
+        .then(data => {
+          const drawer = document.querySelector('cart-drawer');
+          if (drawer && data['cart-drawer']) {
+            drawer.innerHTML = data['cart-drawer'];
+            console.log("✅ Drawer обновлён через секции");
 
-    // ⏳ Затем через 300ms кликаем по иконке корзины
+            const hasItems = drawer.querySelector('.cart-item, [data-cart-item]');
+            if (!hasItems) {
+              console.warn("⏳ Повторная попытка обновления Drawer");
+              setTimeout(updateCartDrawer, 300);
+            }
+          } else {
+            console.warn("❌ Не удалось обновить Drawer через секции");
+          }
+        })
+        .catch(err => {
+          console.error("❌ Ошибка при обновлении Drawer:", err);
+        });
+    }
+
+    // 🔄 Начинаем обновление содержимого Drawer
+    updateCartDrawer();
+
+    // ⏳ Через 300мс кликаем по иконке корзины
     setTimeout(() => {
       const cartToggle = document.querySelector('[data-cart-toggle], .cart-toggle, .header__icon--cart');
       if (cartToggle) {
@@ -29,6 +39,13 @@
         console.warn("❌ Кнопка открытия CartDrawer не найдена — редирект на /cart");
         window.location.href = "/cart";
       }
+
+      // 🧼 Убираем затемнение, если осталось
+      setTimeout(() => {
+        document.body.classList.remove('overflow-hidden');
+        const overlay = document.querySelector('.overlay');
+        if (overlay) overlay.remove();
+      }, 1000);
     }, 300);
   };
 
