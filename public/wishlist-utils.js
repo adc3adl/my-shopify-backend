@@ -3,16 +3,17 @@
   window.ensureCartDrawerThenOpen = function ensureCartDrawerThenOpen() {
     console.log("🛒 ensureCartDrawerThenOpen вызван");
 
-    // Пробуем принудительно отрендерить содержимое drawer'а
-    const drawer = document.querySelector('cart-drawer');
-    if (drawer && typeof drawer.renderContents === 'function') {
-      console.log("✅ cart-drawer.renderContents вызван");
-      fetch('/cart.js')
-        .then((r) => r.json())
-        .then((cart) => {
-          drawer.renderContents(cart);
-        });
-    }
+    
+setTimeout(() => {
+  const cartToggle = document.querySelector('[data-cart-toggle], .cart-toggle, .header__icon--cart');
+  if (cartToggle) {
+    console.log("🧪 Клик по иконке корзины для обновления Drawer");
+    cartToggle.click();
+  } else {
+    console.warn("❌ Кнопка открытия CartDrawer не найдена, редирект на /cart");
+    window.location.href = "/cart";
+  }
+}, 300);
 
     // Ищем кнопку, которая открывает корзину (Cart Drawer)
     const trigger = document.querySelector('[data-cart-toggle], .cart-toggle, .header__icon--cart');
