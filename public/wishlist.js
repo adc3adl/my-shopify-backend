@@ -425,10 +425,9 @@ if (addToCartBtn) {
       });
     });
 
-  setTimeout(() => {
-    // ✅ Пытаемся открыть Drawer, как в Dawn
-waitForCartDrawer();
-  }, 400);
+setTimeout(() => {
+  ensureCartDrawerThenOpen();
+}, 400);
 })
     .catch(err => {
       addToCartBtn.textContent = "Error";
@@ -482,8 +481,17 @@ function waitForCartDrawer(retries = 10) {
     window.CartDrawer.open();
     document.dispatchEvent(new CustomEvent("cart:refresh"));
   } else if (retries > 0) {
-    setTimeout(() => waitForCartDrawer(retries - 1), 200);
+    ensureCartDrawerThenOpen();
   } else {
     window.location.href = "/cart"; // fallback
+  }
+}
+
+function ensureCartDrawerThenOpen() {
+  const cartDrawerScript = [...document.scripts].find(s => s.src.includes("cart-drawer.js"));
+  if (cartDrawerScript) {
+    cartDrawerScript.addEventListener("load", () => waitForCartDrawer());
+  } else {
+    waitForCartDrawer();
   }
 }
