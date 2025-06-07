@@ -77,20 +77,30 @@ function closeModal(modal) {
   }, 400);
 }
 
-  function updateCartCount(count) {
-    const selectors = [
-      ".cart-count-bubble",
-      ".cart-count",
-      "#cart-count",
-      "[data-cart-count]",
-    ];
-    selectors.forEach((selector) => {
-      document.querySelectorAll(selector).forEach((el) => {
+function updateCartCount(count) {
+  const selectors = [
+    ".cart-count-bubble",
+    ".cart-count",
+    "#cart-count",
+    "[data-cart-count]",
+  ];
+
+  selectors.forEach((selector) => {
+    document.querySelectorAll(selector).forEach((el) => {
+      if (count > 0) {
         el.textContent = count;
+        el.style.display = "inline-block"; // 👈 гарантируем отображение
+        el.setAttribute("aria-hidden", "false");
         el.classList.add("visible");
-      });
+      } else {
+        el.textContent = "";
+        el.style.display = "none"; // 👈 скрываем элемент
+        el.setAttribute("aria-hidden", "true");
+        el.classList.remove("visible");
+      }
     });
-  }
+  });
+}
 
 function openCartDrawerSafely() {
   ensureCartDrawerThenOpen(); // ⬅️ просто вызываем уже глобальную функцию
