@@ -147,6 +147,8 @@ function main() {
   window.__wishlistInitialized = true;
 
     // 🧹 Удаляем дефолтные пустые cart-count-bubble от Shopify
+const prehideStyle = document.getElementById("cart-bubble-prehide");
+if (prehideStyle) prehideStyle.remove();
   document.querySelectorAll('.cart-count-bubble').forEach(el => {
     const count = parseInt(el.textContent.trim(), 10);
     if (!count) {
