@@ -72,6 +72,7 @@
   z-index: 10;
   box-shadow: 0 0 0 2px white;
   transition: opacity 0.3s ease;
+  transform: none !important;
 }
     `;
     document.head.appendChild(style);
