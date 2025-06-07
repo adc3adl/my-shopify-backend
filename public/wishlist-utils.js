@@ -1,51 +1,44 @@
 (function () {
   // 🔁 Глобально доступная функция для открытия Cart Drawer
-  window.ensureCartDrawerThenOpen = function ensureCartDrawerThenOpen() {
-    console.log("🛒 ensureCartDrawerThenOpen вызван");
+ window.ensureCartDrawerThenOpen = function ensureCartDrawerThenOpen() {
+  console.log("🛒 ensureCartDrawerThenOpen вызван");
 
-    function updateCartDrawer() {
-      fetch(window.Shopify.routes.root + '?sections=cart-drawer')
-        .then(res => res.json())
-        .then(data => {
-          const oldDrawer = document.querySelector('cart-drawer');
-          if (oldDrawer && data['cart-drawer']) {
-            const tempWrapper = document.createElement('div');
-            tempWrapper.innerHTML = data['cart-drawer'];
+  function updateCartDrawer() {
+    return fetch(window.Shopify.routes.root + '?sections=cart-drawer')
+      .then(res => res.json())
+      .then(data => {
+        const oldDrawer = document.querySelector('cart-drawer');
+        if (oldDrawer && data['cart-drawer']) {
+          const tempWrapper = document.createElement('div');
+          tempWrapper.innerHTML = data['cart-drawer'];
 
-            const newDrawer = tempWrapper.querySelector('cart-drawer');
-            if (newDrawer) {
-              oldDrawer.replaceWith(newDrawer);
-              console.log("✅ Drawer заменён полностью через replaceWith");
+          const newDrawer = tempWrapper.querySelector('cart-drawer');
+          if (newDrawer) {
+            oldDrawer.replaceWith(newDrawer);
+            console.log("✅ Drawer заменён полностью через replaceWith");
 
-              // 🧼 Убираем затемнение, если осталось
-              document.body.classList.remove('overflow-hidden');
-              document.querySelector('.overlay')?.remove();
-            } else {
-              console.warn("❌ Новый Drawer не найден в ответе");
-            }
+            document.body.classList.remove('overflow-hidden');
+            document.querySelector('.overlay')?.remove();
           } else {
-            console.warn("❌ Не удалось заменить Drawer");
+            console.warn("❌ Новый Drawer не найден");
           }
-        })
-        .catch(err => {
-          console.error("❌ Ошибка при обновлении Drawer:", err);
-        });
+        } else {
+          console.warn("❌ Drawer не удалось заменить");
+        }
+      });
+  }
+
+  updateCartDrawer().then(() => {
+    const cartToggle = document.querySelector('[data-cart-toggle], .cart-toggle, .header__icon--cart');
+    if (cartToggle) {
+      console.log("🧪 Клик по иконке корзины (после замены)");
+      cartToggle.click();
+    } else {
+      console.warn("❌ Кнопка корзины не найдена — редирект");
+      window.location.href = "/cart";
     }
-
-    updateCartDrawer();
-
-    // ⏳ Через 300мс кликаем по иконке корзины
-    setTimeout(() => {
-      const cartToggle = document.querySelector('[data-cart-toggle], .cart-toggle, .header__icon--cart');
-      if (cartToggle) {
-        console.log("🧪 Клик по иконке корзины");
-        cartToggle.click();
-      } else {
-        console.warn("❌ Кнопка открытия CartDrawer не найдена — редирект на /cart");
-        window.location.href = "/cart";
-      }
-    }, 300);
-  };
+  });
+};
 
   // 🔢 Обновление счётчика товаров
   window.updateCartCount = function updateCartCount(count) {
