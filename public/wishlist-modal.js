@@ -75,7 +75,24 @@
   transform: none !important;
   
 }
+.header__icon--cart,
+.site-header__cart,
+a[href="/cart"] {
+  position: relative !important;
+}
 
+.header__icon--cart::after,
+.site-header__cart::after,
+a[href="/cart"]::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  visibility: hidden;
+}
   
     `;
     document.head.appendChild(style);
