@@ -55,26 +55,26 @@
         background: transparent;
         display: block;
       }
-              .cart-count-bubble {
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        background-color: #e63946;
-        color: #fff;
-        font-size: 11px;
-        font-weight: 600;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1;
-        text-align: center;
-        z-index: 10;
-        transition: opacity 0.3s ease;
-        box-shadow: 0 0 0 2px white;
-      }
+        .cart-count-bubble {
+          position: absolute;
+          top: -6px;          /* чуть ниже */
+          right: -6px;        /* чуть левее */
+          background-color: #e63946;
+          color: #fff;
+          font-size: 10px;    /* чуть меньше цифра */
+          font-weight: 600;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
+          text-align: center;
+          z-index: 10;
+          transition: opacity 0.3s ease;
+          box-shadow: 0 0 0 2px white;
+        } 
     `;
     document.head.appendChild(style);
   }
