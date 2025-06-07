@@ -78,6 +78,23 @@ function closeModal(modal) {
 }
 
 function updateCartCount(count) {
+  const ensureElement = (selector) => {
+    let el = document.querySelector(selector);
+    if (!el && selector === ".cart-count-bubble") {
+      // 🆕 Создаём вручную, если не существует
+      el = document.createElement("div");
+      el.className = "cart-count-bubble";
+      el.setAttribute("aria-hidden", "true");
+      const cartIcon = document.querySelector(".header__icon--cart, .site-header__cart");
+      if (cartIcon) {
+        cartIcon.appendChild(el);
+      } else {
+        document.body.appendChild(el);
+      }
+    }
+    return el;
+  };
+
   const selectors = [
     ".cart-count-bubble",
     ".cart-count",
@@ -86,19 +103,20 @@ function updateCartCount(count) {
   ];
 
   selectors.forEach((selector) => {
-    document.querySelectorAll(selector).forEach((el) => {
-      if (count > 0) {
-        el.textContent = count;
-        el.style.display = "inline-block"; // 👈 гарантируем отображение
-        el.setAttribute("aria-hidden", "false");
-        el.classList.add("visible");
-      } else {
-        el.textContent = "";
-        el.style.display = "none"; // 👈 скрываем элемент
-        el.setAttribute("aria-hidden", "true");
-        el.classList.remove("visible");
-      }
-    });
+    const el = ensureElement(selector);
+    if (!el) return;
+
+    if (count > 0) {
+      el.textContent = count;
+      el.style.display = "inline-block";
+      el.setAttribute("aria-hidden", "false");
+      el.classList.add("visible");
+    } else {
+      el.textContent = "";
+      el.style.display = "none";
+      el.setAttribute("aria-hidden", "true");
+      el.classList.remove("visible");
+    }
   });
 }
 
