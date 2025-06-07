@@ -96,7 +96,9 @@ function openCartDrawerSafely() {
   ensureCartDrawerThenOpen(); // ⬅️ просто вызываем уже глобальную функцию
 }
 
-  function main() {
+function main() {
+  if (window.__wishlistInitialized) return;
+  window.__wishlistInitialized = true;
     const toggleBtn = document.getElementById("wishlist-toggle");
     const modal = document.getElementById("wishlist-modal");
     const closeBtn = document.getElementById("wishlist-close");

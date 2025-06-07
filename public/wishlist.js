@@ -369,7 +369,7 @@ document.addEventListener("click", async function (e) {
   window.__wishlistRemovedCache.add(productId);
   setTimeout(() => window.__wishlistRemovedCache.delete(productId), 3000);
 
-  fetchWishlist(customerId);
+
 } else {
             alert("Error removing from wishlist");
           }
