@@ -56,23 +56,23 @@
         display: block;
       }
 .cart-count-bubble {
-  position: absolute;
-  top: -6px;
-  right: -6px;
+  position: absolute!important;
+  top: -6px!important;
+  right: -6px!important;
   background-color: #e63946;
   color: #fff;
-  font-size: 10px;
-  font-weight: 600;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  line-height: 18px;        /* 👈 центровка цифры по высоте */
-  text-align: center;       /* 👈 по горизонтали */
-  vertical-align: middle;
-  z-index: 10;
-  box-shadow: 0 0 0 2px white;
-  transition: opacity 0.3s ease;
-  transform: none !important;
+  font-size: 10px!important;
+  font-weight: 600!important;
+  width: 18px!important;
+  height: 18px!important;
+  border-radius: 50%!important;
+  line-height: 18px;!important        /* 👈 центровка цифры по высоте */
+  text-align: center!important;       /* 👈 по горизонтали */
+  vertical-align: middle!important;
+  z-index: 10!important;
+  box-shadow: 0 0 0 2px white!important;
+  transition: opacity 0.3s ease!important;
+  transform: none !important!important;
 }
     `;
     document.head.appendChild(style);
