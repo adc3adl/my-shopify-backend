@@ -93,20 +93,7 @@ a[href="/cart"]::after {
   border-radius: 50%;
   visibility: hidden;
 }
-  .header__icon .svg-wrapper {
-  min-height: 44px !important; /* 👈 не даём схлопнуться */
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  overflow: visible !important;
-}
-  .header__icon .icon svg,
-.svg-wrapper > svg {
-  height: 100% !important;
-  width: auto !important;
-  display: block !important;
-  overflow: visible !important;
-}ы
+  
   
     `;
     document.head.appendChild(style);
