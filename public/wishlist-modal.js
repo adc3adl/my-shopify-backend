@@ -394,22 +394,7 @@ fetch("/cart.js")
 
     if (count > 0) {
       bubble.textContent = count;
-      bubble.style.display = "inline-block";
-      bubble.style.position = "absolute";
-      bubble.style.top = "0";
-      bubble.style.right = "0";
-      bubble.style.transform = "translate(50%, -50%)";
-      bubble.style.background = "#e63946";
-      bubble.style.color = "#fff";
-      bubble.style.borderRadius = "50%";
-      bubble.style.width = "20px";
-      bubble.style.height = "20px";
-      bubble.style.fontSize = "12px";
-      bubble.style.fontWeight = "600";
-      bubble.style.display = "flex";
-      bubble.style.alignItems = "center";
-      bubble.style.justifyContent = "center";
-      bubble.style.zIndex = "999";
+
     } else {
       bubble.style.display = "none";
       bubble.setAttribute("aria-hidden", "true");
