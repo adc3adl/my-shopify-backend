@@ -55,26 +55,24 @@
         background: transparent;
         display: block;
       }
-        .cart-count-bubble {
-          position: absolute;
-          top: -6px;          /* чуть ниже */
-          right: -6px;        /* чуть левее */
-          background-color: #e63946;
-          color: #fff;
-          font-size: 10px;    /* чуть меньше цифра */
-          font-weight: 600;
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          line-height: 1;
-          text-align: center;
-          z-index: 10;
-          transition: opacity 0.3s ease;
-          box-shadow: 0 0 0 2px white;
-        } 
+.cart-count-bubble {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background-color: #e63946;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  line-height: 18px;        /* 👈 центровка цифры по высоте */
+  text-align: center;       /* 👈 по горизонтали */
+  vertical-align: middle;
+  z-index: 10;
+  box-shadow: 0 0 0 2px white;
+  transition: opacity 0.3s ease;
+}
     `;
     document.head.appendChild(style);
   }
@@ -147,6 +145,15 @@ function openCartDrawerSafely() {
 function main() {
   if (window.__wishlistInitialized) return;
   window.__wishlistInitialized = true;
+
+    // 🧹 Удаляем дефолтные пустые cart-count-bubble от Shopify
+  document.querySelectorAll('.cart-count-bubble').forEach(el => {
+    const count = parseInt(el.textContent.trim(), 10);
+    if (!count) {
+      el.remove();
+    }
+  });
+  
     const toggleBtn = document.getElementById("wishlist-toggle");
     const modal = document.getElementById("wishlist-modal");
     const closeBtn = document.getElementById("wishlist-close");
