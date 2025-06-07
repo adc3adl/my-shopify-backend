@@ -291,62 +291,18 @@ document.querySelectorAll(".wishlist-button").forEach((btn) => {
     injectWishlistStyles();
 
 document.addEventListener("click", async function (e) {
-  const wishlistBtn = e.target.closest(".wishlist-button");
-  if (wishlistBtn) {
-    const productId = wishlistBtn.getAttribute("data-product-id");
-    const customerId = getCustomerId();
-    if (!customerId) {
-      showLoginModal(wishlistBtn);
-      return;
-    }
+const wishlistBtn = e.target.closest(".wishlist-button");
+if (wishlistBtn) {
+  const customerId = getCustomerId();
+  if (!customerId) {
+    showLoginModal(wishlistBtn);
+  }
 
-    // === ✅ Кэш недавно удалённых товаров
-    window.__wishlistRemovedCache = window.__wishlistRemovedCache || new Set();
-    if (window.__wishlistRemovedCache.has(productId)) {
-      window.__wishlistRemovedCache.delete(productId); // убираем из кэша, чтобы не мешало добавлению
-    }
+  // ❌ Удалён fetch-запрос к /api/wishlist — теперь он должен идти из Liquid
+  // ✅ Оставлен только показ модалки для неавторизованных
 
-    try {
-      const res = await fetch(`${API_URL}/api/wishlist`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customerId, productId, action: "toggle" })
-      });
-
-      const result = await res.json();
-
-      // Обновляем иконки у всех сердечек с этим productId
-      const buttons = document.querySelectorAll(`.wishlist-button[data-product-id="${productId}"]`);
-      buttons.forEach((btn) => {
-        const svg = btn.querySelector("svg");
-        if (result.status === "added") {
-          btn.classList.add("added");
-          if (svg) {
-            svg.setAttribute("fill", "#e63946");
-            svg.setAttribute("stroke", "#e63946");
-          }
-        } else if (result.status === "removed") {
-          btn.classList.remove("added");
-          if (svg) {
-            svg.setAttribute("fill", "none");
-            svg.setAttribute("stroke", "#e63946");
-          }
-
-          // ⬅️ Добавляем в кэш только если удаление подтверждено
-          window.__wishlistRemovedCache.add(productId);
-          setTimeout(() => window.__wishlistRemovedCache.delete(productId), 5000); // очищаем через 5 сек
-        }
-      });
-
-        syncWishlistButtons();
-
-    } catch (err) {
-      console.error("❌ Error toggling wishlist:", err);
-    }
-
-    return;
-      }
-
+  return;
+}
       const removeBtn = e.target.closest(".wishlist-remove-btn");
       if (removeBtn) {
         const productId = removeBtn.getAttribute("data-product-id");
