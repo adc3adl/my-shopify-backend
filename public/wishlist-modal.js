@@ -153,7 +153,7 @@ function main() {
       el.remove();
     }
   });
-  
+
     const toggleBtn = document.getElementById("wishlist-toggle");
     const modal = document.getElementById("wishlist-modal");
     const closeBtn = document.getElementById("wishlist-close");
@@ -350,19 +350,57 @@ if (e.target.classList.contains("wishlist-add-to-cart")) {
       e.target.textContent = "🛒 Add to cart";
       e.target.disabled = false;
     }, 1200);
+// ✅ Обновляем счётчик корзины
+fetch("/cart.js")
+  .then((r) => r.json())
+  .then((cart) => {
+    const count = cart.item_count;
 
-    // ✅ Обновляем счётчик корзины
-    fetch("/cart.js")
-      .then((r) => r.json())
-      .then((cart) => {
-        updateCartCount(cart.item_count);
+    // 🆕 Убедимся, что элемент существует и видим
+    let bubble = document.querySelector(".cart-count-bubble");
 
-        // ✅ Только вызов глобальной функции
-        ensureCartDrawerThenOpen();
+    if (!bubble) {
+      bubble = document.createElement("div");
+      bubble.className = "cart-count-bubble";
+      bubble.setAttribute("aria-hidden", "false");
 
-        // 🟢 Опционально: событие для темы
-        document.dispatchEvent(new CustomEvent("cart:refresh"));
-      });
+      const cartIcon = document.querySelector(".header__icon--cart, .site-header__cart, a[href$='/cart']");
+      if (cartIcon) {
+        cartIcon.appendChild(bubble);
+      } else {
+        document.body.appendChild(bubble);
+      }
+    }
+
+    if (count > 0) {
+      bubble.textContent = count;
+      bubble.style.display = "inline-block";
+      bubble.style.position = "absolute";
+      bubble.style.top = "0";
+      bubble.style.right = "0";
+      bubble.style.transform = "translate(50%, -50%)";
+      bubble.style.background = "#e63946";
+      bubble.style.color = "#fff";
+      bubble.style.borderRadius = "50%";
+      bubble.style.width = "20px";
+      bubble.style.height = "20px";
+      bubble.style.fontSize = "12px";
+      bubble.style.fontWeight = "600";
+      bubble.style.display = "flex";
+      bubble.style.alignItems = "center";
+      bubble.style.justifyContent = "center";
+      bubble.style.zIndex = "999";
+    } else {
+      bubble.style.display = "none";
+      bubble.setAttribute("aria-hidden", "true");
+    }
+
+    // ✅ Открываем CartDrawer
+    ensureCartDrawerThenOpen();
+
+    // 🟢 Для совместимости с темами Shopify
+    document.dispatchEvent(new CustomEvent("cart:refresh"));
+  });
 
   } catch (err) {
     alert("Ошибка при добавлении в корзину");
