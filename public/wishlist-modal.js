@@ -73,16 +73,15 @@
   box-shadow: 0 0 0 2px white;
   transition: opacity 0.3s ease;
   transform: none !important;
-   .header__icon--cart,
-  .site-header__cart,
-  a[href="/cart"] {
-    position: relative;
-    overflow: visible !important;
-  }
-
-  .header__icon--cart svg {
-    padding-top: 2px;
-  }
+  
+}
+  .header__icon--cart svg,
+.site-header__cart svg,
+a[href="/cart"] svg {
+  display: block !important;
+  height: 100% !important;
+  width: auto !important;
+  overflow: visible !important;
 }
     `;
     document.head.appendChild(style);
