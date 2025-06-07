@@ -288,133 +288,190 @@ document.querySelectorAll(".wishlist-button").forEach((btn) => {
   }
 
   function main() {
-  injectWishlistStyles();
+    injectWishlistStyles();
 
-  document.addEventListener("click", async function (e) {
-    // Удаление из wishlist (крестик)
-    const removeBtn = e.target.closest(".wishlist-remove-btn");
-    if (removeBtn) {
-      const productId = removeBtn.getAttribute("data-product-id");
-      let customerId = getCustomerId();
-      if (!customerId) return;
-      try {
-        const res = await fetch(`${API_URL}/api/wishlist`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ customerId, productId, action: "remove" })
-        });
-
-        if (res.ok) {
-          // 🧠 Обновим локальный кэш — удалим ID
-          cachedWishlistIds = cachedWishlistIds.filter(id => String(id) !== productId);
-          syncWishlistButtons();
-
-          // 🛡️ Защита от двойных кликов
-          window.__wishlistRemovedCache = window.__wishlistRemovedCache || new Set();
-          window.__wishlistRemovedCache.add(productId);
-          setTimeout(() => window.__wishlistRemovedCache.delete(productId), 3000);
-        } else {
-          alert("Error removing from wishlist");
-        }
-      } catch (err) {
-        alert("Server unavailable");
-      }
+document.addEventListener("click", async function (e) {
+  const wishlistBtn = e.target.closest(".wishlist-button");
+  if (wishlistBtn) {
+    const productId = wishlistBtn.getAttribute("data-product-id");
+    const customerId = getCustomerId();
+    if (!customerId) {
+      showLoginModal(wishlistBtn);
       return;
     }
 
-    // Добавление в корзину
-    const addToCartBtn = e.target.closest(".wishlist-add-to-cart");
-    if (addToCartBtn) {
-      const productId = addToCartBtn.getAttribute("data-product-id");
-      let customerId = getCustomerId();
-      const itemDiv = addToCartBtn.closest(".wishlist-item");
-      const productTitle = itemDiv?.querySelector("a")?.textContent || "";
-      const productUrl = itemDiv?.querySelector("a")?.href || "";
+    // === ✅ Кэш недавно удалённых товаров
+    window.__wishlistRemovedCache = window.__wishlistRemovedCache || new Set();
+    if (window.__wishlistRemovedCache.has(productId)) {
+      window.__wishlistRemovedCache.delete(productId); // убираем из кэша, чтобы не мешало добавлению
+    }
 
-      addToCartBtn.disabled = true;
-      addToCartBtn.textContent = "Adding...";
-
-      fetch("/cart/add.js", {
+    try {
+      const res = await fetch(`${API_URL}/api/wishlist`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: productId, quantity: 1 })
-      })
-        .then(res => {
-          if (!res.ok) throw new Error("Shopify cart add error");
-          return res.json();
-        })
-        .then(() => {
-          return fetch(`${API_URL}/api/add-to-cart`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "ngrok-skip-browser-warning": "true",
-              "X-From-Wishlist": "true"
-            },
-            body: JSON.stringify({
-              productId,
-              title: productTitle,
-              url: productUrl,
-              customerId: customerId || ""
-            })
-          });
-        })
-        .then(() => {
-          addToCartBtn.textContent = "Added!";
+        body: JSON.stringify({ customerId, productId, action: "toggle" })
+      });
 
-          // Обновим счётчик корзины
-          fetch("/cart.js")
-            .then((res) => res.json())
-            .then((cart) => {
-              const count = cart?.item_count || 0;
-              document.querySelectorAll(".cart-count-bubble, .cart-count, #cart-count").forEach(el => {
-                el.textContent = count;
-                el.classList.add("visible");
-              });
-            });
+      const result = await res.json();
 
-          setTimeout(() => {
-            ensureCartDrawerThenOpen();
-          }, 400);
-        })
-        .catch(err => {
-          addToCartBtn.textContent = "Error";
-          setTimeout(() => {
-            addToCartBtn.textContent = "🛒 Add to cart";
-            addToCartBtn.disabled = false;
-          }, 1200);
-          alert("Ошибка при добавлении в корзину");
-          console.error("❌ Add to cart error:", err);
-        });
+      // Обновляем иконки у всех сердечек с этим productId
+      const buttons = document.querySelectorAll(`.wishlist-button[data-product-id="${productId}"]`);
+      buttons.forEach((btn) => {
+        const svg = btn.querySelector("svg");
+        if (result.status === "added") {
+          btn.classList.add("added");
+          if (svg) {
+            svg.setAttribute("fill", "#e63946");
+            svg.setAttribute("stroke", "#e63946");
+          }
+        } else if (result.status === "removed") {
+          btn.classList.remove("added");
+          if (svg) {
+            svg.setAttribute("fill", "none");
+            svg.setAttribute("stroke", "#e63946");
+          }
 
-      return;
+          // ⬅️ Добавляем в кэш только если удаление подтверждено
+          window.__wishlistRemovedCache.add(productId);
+          setTimeout(() => window.__wishlistRemovedCache.delete(productId), 5000); // очищаем через 5 сек
+        }
+      });
+
+        syncWishlistButtons();
+
+    } catch (err) {
+      console.error("❌ Error toggling wishlist:", err);
     }
 
-    // Открытие wishlist-модалки
-    if (e.target.id === "wishlist-open") {
-      let customerId = getCustomerId();
-      if (!customerId) return showLoginModal();
-      document.getElementById("wishlist-modal").classList.remove("hidden");
-      fetchWishlist(customerId);
-      return;
-    }
-
-    // Закрытие модалки логина
-    if (e.target.id === "wishlist-login-close") {
-      const modal = document.getElementById("wishlist-login-modal");
-      if (modal) {
-        modal.classList.remove("fade-in");
-        modal.classList.add("fade-out");
-
-        setTimeout(() => {
-          modal.classList.add("hidden");
-          modal.classList.remove("fade-out");
-        }, 300);
+    return;
       }
-      return;
-    }
-  });
+
+      const removeBtn = e.target.closest(".wishlist-remove-btn");
+      if (removeBtn) {
+        const productId = removeBtn.getAttribute("data-product-id");
+        let customerId = getCustomerId();
+        if (!customerId) return;
+        try {
+          const res = await fetch(`${API_URL}/api/wishlist`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ customerId, productId, action: "remove" })
+          });
+         if (res.ok) {
+  // 🧠 Обновим локальный кэш — удалим ID
+  cachedWishlistIds = cachedWishlistIds.filter(id => String(id) !== productId);
+
+  syncWishlistButtons(); 
+
+  // 🛡️ И добавим в защитный кэш от двойных кликов
+  window.__wishlistRemovedCache = window.__wishlistRemovedCache || new Set();
+  window.__wishlistRemovedCache.add(productId);
+  setTimeout(() => window.__wishlistRemovedCache.delete(productId), 3000);
+
+  fetchWishlist(customerId);
+} else {
+            alert("Error removing from wishlist");
+          }
+        } catch (err) {
+          alert("Server unavailable");
+        }
+        return;
+      }
+
+const addToCartBtn = e.target.closest(".wishlist-add-to-cart");
+if (addToCartBtn) {
+  const productId = addToCartBtn.getAttribute("data-product-id");
+  let customerId = getCustomerId();
+  const itemDiv = addToCartBtn.closest('.wishlist-item');
+  const productTitle = itemDiv?.querySelector('a')?.textContent || "";
+  const productUrl = itemDiv?.querySelector('a')?.href || "";
+
+  addToCartBtn.disabled = true;
+  addToCartBtn.textContent = "Adding...";
+
+  fetch('/cart/add.js', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: productId, quantity: 1 })
+  })
+    .then(res => {
+      if (!res.ok) throw new Error('Shopify cart add error');
+      return res.json();
+    })
+    .then(() => {
+      return fetch(`${API_URL}/api/add-to-cart`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          'X-From-Wishlist': 'true'
+        },
+        body: JSON.stringify({
+          productId,
+          title: productTitle,
+          url: productUrl,
+          customerId: customerId || ""
+        })
+      });
+    })
+.then(() => {
+  addToCartBtn.textContent = "Added!";
+
+  // Обновим счётчик корзины
+  fetch('/cart.js')
+    .then((res) => res.json())
+    .then((cart) => {
+      const count = cart?.item_count || 0;
+      document.querySelectorAll('.cart-count-bubble, .cart-count, #cart-count').forEach(el => {
+        el.textContent = count;
+        el.classList.add('visible');
+      });
+    });
+
+setTimeout(() => {
+  ensureCartDrawerThenOpen();
+}, 400);
+})
+    .catch(err => {
+      addToCartBtn.textContent = "Error";
+      setTimeout(() => {
+        addToCartBtn.textContent = "🛒 Add to cart";
+        addToCartBtn.disabled = false;
+      }, 1200);
+      alert("Ошибка при добавлении в корзину");
+      console.error("❌ Add to cart error:", err);
+    });
+
+  return;
 }
+
+      if (e.target.id === "wishlist-open") {
+        let customerId = getCustomerId();
+        if (!customerId) return showLoginModal();
+        document.getElementById("wishlist-modal").classList.remove("hidden");
+        fetchWishlist(customerId);
+        return;
+      }
+
+
+
+if (e.target.id === "wishlist-login-close") {
+  const modal = document.getElementById("wishlist-login-modal");
+  if (modal) {
+    modal.classList.remove("fade-in");
+    modal.classList.add("fade-out");
+
+    // После окончания анимации — скрываем и сбрасываем fade-out
+    setTimeout(() => {
+      modal.classList.add("hidden");
+      modal.classList.remove("fade-out");
+    }, 300);
+  }
+  return;
+}
+    });
+  }
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", main);
