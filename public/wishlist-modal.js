@@ -83,6 +83,26 @@ a[href="/cart"] svg {
   width: auto !important;
   overflow: visible !important;
 }
+  .header__icon--cart,
+.site-header__cart,
+a[href="/cart"] {
+  min-height: 28px !important;
+  line-height: normal !important;
+  overflow: visible !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.header__icon--cart svg,
+.site-header__cart svg,
+a[href="/cart"] svg {
+  display: block !important;
+  height: 24px !important;
+  width: 24px !important;
+  overflow: visible !important;
+  margin-top: 2px !important;
+}
     `;
     document.head.appendChild(style);
   }
