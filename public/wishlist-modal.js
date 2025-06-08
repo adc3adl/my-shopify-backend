@@ -57,7 +57,7 @@
       }
 .cart-count-bubble {
   position: absolute;
-  top: -6px;
+  /*top: -6px;*/
   right: -6px;
   background-color: #e63946;
   color: #fff;
@@ -86,7 +86,7 @@ a[href="/cart"] {
 a[href="/cart"]::after {
   content: '';
   position: absolute;
-  top: -6px;
+  /*top: -6px;*/
   right: -6px;
   width: 18px;
   height: 18px;
