@@ -55,45 +55,7 @@
         background: transparent;
         display: block;
       }
-.cart-count-bubble {
-  position: absolute;
-  /*top: -6px;*/
-  right: -6px;
-  background-color: #e63946;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 600;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  line-height: 18px;        /* 👈 центровка цифры по высоте */
-  text-align: center;       /* 👈 по горизонтали */
-  vertical-align: middle;
-  z-index: 10;
-  box-shadow: 0 0 0 2px white;
-  transition: opacity 0.3s ease;
-  transform: none !important;
-  
-}
-.header__icon--cart,
-.site-header__cart,
-a[href="/cart"] {
-  position: relative !important;
-}
 
-.header__icon--cart::after,
-.site-header__cart::after,
-a[href="/cart"]::after {
-  content: '';
-  position: absolute;
-  /*top: -6px;*/
-  right: -6px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  visibility: hidden;
-}
-  
   
     `;
     document.head.appendChild(style);
@@ -168,23 +130,7 @@ function main() {
   if (window.__wishlistInitialized) return;
   window.__wishlistInitialized = true;
 document.querySelectorAll(".cart-count-bubble").forEach((el) => {
-  el.style.setProperty("background-color", "#e63946", "important");
-  el.style.setProperty("color", "#fff", "important");
-  el.style.setProperty("font-size", "11px", "important");
-  el.style.setProperty("font-weight", "600", "important");
-  el.style.setProperty("width", "18px", "important");
-  el.style.setProperty("height", "18px", "important");
-  el.style.setProperty("border-radius", "50%", "important");
-  el.style.setProperty("line-height", "18px", "important");
-  el.style.setProperty("text-align", "center", "important");
-  el.style.setProperty("box-shadow", "0 0 0 2px white", "important");
-  el.style.setProperty("right", "-6px", "important");
-  el.style.setProperty("position", "absolute", "important");
-  el.style.setProperty("transform", "none", "important");
-  el.style.setProperty("display", "flex", "important");
-  el.style.setProperty("z-index", "10", "important");
-  el.style.setProperty("align-items", "center", "important");    
-  el.style.setProperty("justify-content", "center", "important"); 
+
 });
     // 🧹 Удаляем дефолтные пустые cart-count-bubble от Shopify
 const prehideStyle = document.getElementById("cart-bubble-prehide");
