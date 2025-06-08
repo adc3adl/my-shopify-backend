@@ -178,12 +178,13 @@ document.querySelectorAll(".cart-count-bubble").forEach((el) => {
   el.style.setProperty("line-height", "18px", "important");
   el.style.setProperty("text-align", "center", "important");
   el.style.setProperty("box-shadow", "0 0 0 2px white", "important");
-  //el.style.setProperty("top", "-6px", "important");
   el.style.setProperty("right", "-6px", "important");
   el.style.setProperty("position", "absolute", "important");
   el.style.setProperty("transform", "none", "important");
-  el.style.setProperty("display", "inline-block", "important");
+  el.style.setProperty("display", "flex", "important");
   el.style.setProperty("z-index", "10", "important");
+  el.style.setProperty("align-items", "center", "important");    
+  el.style.setProperty("justify-content", "center", "important"); 
 });
     // 🧹 Удаляем дефолтные пустые cart-count-bubble от Shopify
 const prehideStyle = document.getElementById("cart-bubble-prehide");
